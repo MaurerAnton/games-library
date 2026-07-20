@@ -142,9 +142,14 @@ Object.values(effects).forEach(fx=>{document.getElementById(fx.el).addEventListe
 document.getElementById('randomize-btn').addEventListener('click',()=>{Object.values(effects).forEach(fx=>{document.getElementById(fx.el).checked=Math.random()>0.4;document.getElementById(fx.int).value=Math.floor(Math.random()*80+10)});applyEffects()});
 document.getElementById('reset-btn').addEventListener('click',()=>{Object.values(effects).forEach(fx=>{document.getElementById(fx.el).checked=false;document.getElementById(fx.int).value=50});applyEffects()});
 document.getElementById('download-btn').addEventListener('click',()=>{if(!originalImage)return;const link=document.createElement('a');link.download='glitch-art.png';link.href=canvas.toDataURL('image/png');link.click()});
-document.getElementById('upload-btn').addEventListener('click',()=>uploadInput.click());
-document.getElementById('drop-upload-btn').addEventListener('click',()=>uploadInput.click());
-uploadInput.addEventListener('change',e=>{if(e.target.files&&e.target.files[0])loadImage(e.target.files[0])});
+function openFilePicker(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{if(e.target.files&&e.target.files[0])loadImage(e.target.files[0])};
+  inp.click();
+}
+document.getElementById('upload-btn').addEventListener('click',openFilePicker);
+document.getElementById('drop-upload-btn').addEventListener('click',openFilePicker);
 
 // Drag and drop
 dropZone.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();dropZone.classList.add('dragover')});
