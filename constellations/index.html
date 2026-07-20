@@ -187,7 +187,9 @@ function drawConstellation(c,t,showName,showOverlay){
   for(let i=0;i<stars.length;i++){const s=stars[i];const pulse=Math.sin(t*0.003+i)*0.3+0.7;
     ctx.beginPath();ctx.arc(s.x,s.y,5,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${pulse})`;ctx.shadowBlur=8;ctx.shadowColor='rgba(255,255,255,0.5)';ctx.fill();ctx.shadowBlur=0}
   if(showOverlay&&c.overlay){
-    const cx=W/2,cy=H/2,s=Math.min(W,H)*0.3;
+    let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+    for(const s of stars){minX=Math.min(minX,s.x);maxX=Math.max(maxX,s.x);minY=Math.min(minY,s.y);maxY=Math.max(maxY,s.y)}
+    const cx=(minX+maxX)/2,cy=(minY+maxY)/2,s=Math.max(maxX-minX,maxY-minY)*0.6;
     ctx.globalAlpha=0.3;c.overlay(cx,cy,s,ctx);ctx.globalAlpha=1;
   }
   if(showName){ctx.save();ctx.font='bold 18px "Courier New",monospace';ctx.textAlign='center';ctx.fillStyle='#00e5ff';ctx.shadowBlur=12;ctx.shadowColor='#00e5ff';ctx.fillText(c.name.toUpperCase(),W/2,H-100);ctx.restore()}
