@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Constellation Quiz</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --green: #00ff88;
+  --purple: #aa44ff;
+  --cyan: #00e5ff;
+  --red: #ff4444;
+  --text: #c8c8d8;
+  --grey: #666680;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); overflow: hidden; font-family: 'Courier New', monospace; }
+canvas { display: block; cursor: pointer; }
+#hud {
+  position: fixed; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 24px; pointer-events: none; z-index: 10;
+}
+#const-name {
+  font-size: 22px; letter-spacing: 4px; color: var(--cyan);
+  text-shadow: 0 0 12px var(--cyan);
+}
+#score-info { color: var(--green); font-size: 16px; letter-spacing: 2px; text-shadow: 0 0 8px var(--green); }
+#timer { color: var(--purple); font-size: 16px; letter-spacing: 2px; text-shadow: 0 0 8px var(--purple); }
+#start-screen {
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 20;
+  background: rgba(10,10,15,0.95);
+}
+#start-screen h1 {
+  font-size: 36px; letter-spacing: 6px; margin-bottom: 8px;
+  color: var(--cyan); text-shadow: 0 0 20px var(--cyan);
+}
+#start-screen p { color: var(--grey); letter-spacing: 2px; margin-bottom: 24px; font-size: 14px; }
+#msg {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  font-size: 18px; letter-spacing: 2px; padding: 10px 24px;
+  border-radius: 4px; z-index: 15; opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+#msg.show { opacity: 1; }
+#msg.correct { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid var(--green); }
+#msg.wrong { background: rgba(255,68,68,0.15); color: var(--red); border: 1px solid var(--red); }
+#msg.info { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid var(--cyan); }
+#progress {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  font-size: 13px; color: var(--grey); letter-spacing: 2px; z-index: 10;
+}
+.btn {
+  background: transparent; border: 1px solid var(--cyan); color: var(--cyan);
+  font-family: 'Courier New', monospace; font-size: 16px; padding: 10px 28px;
+  cursor: pointer; letter-spacing: 2px; transition: all 0.2s;
+}
+.btn:hover {
+  background: var(--cyan); color: var(--bg);
+  box-shadow: 0 0 15px rgba(0,229,255,0.4);
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div id="const-name"></div>
+  <div id="timer"></div>
+  <div id="score-info"></div>
+</div>
+<div id="msg"></div>
+<div id="progress"></div>
+
+<div id="start-screen">
+  <h1>CONSTELLATION QUIZ</h1>
+  <p>click stars in the correct order to form constellations</p>
+  <button class="btn" id="start-btn">START</button>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+resize();
+addEventListener('resize', resize);
+
+const CONSTELLATIONS = [
+  { name:"Orion", stars:[[0.5,0.15],[0.45,0.25],[0.55,0.25],[0.4,0.35],[0.5,0.35],[0.6,0.35],[0.42,0.5],[0.58,0.5]], lines:[[0,1],[0,2],[1,3],[2,5],[3,4],[4,5],[3,6],[5,7]] },
+  { name:"Ursa Major", stars:[[0.2,0.3],[0.28,0.28],[0.35,0.3],[0.4,0.35],[0.48,0.33],[0.55,0.28],[0.6,0.25]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[3,6]] },
+  { name:"Cassiopeia", stars:[[0.2,0.4],[0.3,0.25],[0.4,0.38],[0.5,0.2],[0.6,0.35]], lines:[[0,1],[1,2],[2,3],[3,4]] },
+  { name:"Leo", stars:[[0.3,0.3],[0.35,0.2],[0.4,0.22],[0.45,0.25],[0.5,0.3],[0.55,0.35],[0.45,0.4]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[4,6],[6,0]] },
+  { name:"Scorpius", stars:[[0.4,0.15],[0.42,0.22],[0.45,0.3],[0.48,0.38],[0.5,0.45],[0.52,0.52],[0.55,0.6],[0.58,0.65],[0.55,0.7],[0.5,0.68]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9]] },
+  { name:"Cygnus", stars:[[0.5,0.15],[0.5,0.3],[0.5,0.45],[0.5,0.6],[0.35,0.35],[0.65,0.35]], lines:[[0,1],[1,2],[2,3],[4,1],[1,5]] },
+  { name:"Lyra", stars:[[0.5,0.2],[0.45,0.35],[0.55,0.35],[0.43,0.45],[0.57,0.45]], lines:[[0,1],[0,2],[1,3],[2,4],[3,4]] },
+  { name:"Gemini", stars:[[0.35,0.15],[0.55,0.15],[0.38,0.3],[0.52,0.3],[0.4,0.45],[0.5,0.45],[0.42,0.55],[0.48,0.55]], lines:[[0,2],[2,4],[4,6],[1,3],[3,5],[5,7],[0,1]] },
+  { name:"Canis Major", stars:[[0.5,0.15],[0.48,0.28],[0.52,0.28],[0.45,0.4],[0.55,0.4],[0.5,0.55],[0.42,0.6],[0.58,0.6]], lines:[[0,1],[0,2],[1,3],[2,4],[3,5],[4,5],[5,6],[5,7]] },
+  { name:"Carina", stars:[[0.3,0.3],[0.4,0.2],[0.5,0.35],[0.6,0.25],[0.7,0.3],[0.5,0.5]], lines:[[0,1],[1,2],[2,3],[3,4],[2,5]] },
+  { name:"Crux", stars:[[0.4,0.2],[0.6,0.2],[0.5,0.1],[0.5,0.4],[0.4,0.5],[0.6,0.5]], lines:[[0,2],[2,1],[3,0],[3,1],[0,4],[1,5]] },
+  { name:"Centaurus", stars:[[0.2,0.3],[0.35,0.2],[0.5,0.25],[0.65,0.3],[0.7,0.45],[0.55,0.5],[0.35,0.45]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]] },
+  { name:"Hercules", stars:[[0.5,0.15],[0.4,0.3],[0.6,0.3],[0.35,0.45],[0.65,0.45],[0.4,0.6],[0.6,0.6]], lines:[[0,1],[0,2],[1,3],[2,4],[3,5],[4,6],[1,2],[3,4]] },
+  { name:"Perseus", stars:[[0.5,0.1],[0.45,0.22],[0.55,0.22],[0.4,0.35],[0.6,0.35],[0.35,0.5],[0.5,0.5],[0.65,0.5]], lines:[[0,1],[0,2],[1,3],[2,4],[3,5],[3,6],[4,6],[4,7]] },
+  { name:"Andromeda", stars:[[0.2,0.35],[0.35,0.3],[0.5,0.25],[0.65,0.2],[0.4,0.4],[0.55,0.45]], lines:[[0,1],[1,2],[2,3],[1,4],[4,5]] },
+  { name:"Pegasus", stars:[[0.3,0.2],[0.7,0.2],[0.7,0.6],[0.3,0.6]], lines:[[0,1],[1,2],[2,3],[3,0]] },
+  { name:"Triangulum", stars:[[0.5,0.15],[0.4,0.5],[0.6,0.5]], lines:[[0,1],[1,2],[2,0]] },
+  { name:"Delphinus", stars:[[0.5,0.2],[0.43,0.35],[0.57,0.35],[0.5,0.5],[0.42,0.42]], lines:[[0,1],[0,2],[1,3],[2,3],[1,4],[4,2]] },
+  { name:"Aquila", stars:[[0.5,0.15],[0.4,0.35],[0.6,0.35],[0.35,0.5],[0.65,0.5],[0.5,0.6]], lines:[[0,1],[0,2],[1,3],[2,4],[1,5],[2,5]] },
+  { name:"Corvus", stars:[[0.4,0.25],[0.6,0.25],[0.6,0.5],[0.4,0.5]], lines:[[0,1],[1,2],[2,3],[3,0],[0,2]] }
+];
+
+let bgStars = [];
+for (let i = 0; i < 300; i++) {
+  bgStars.push({ x: Math.random(), y: Math.random(), r: Math.random() * 1.5 + 0.3, twinkle: Math.random() * Math.PI * 2 });
+}
+
+let state = 'start';
+let current = 0;
+let score = 0;
+let attempted = 0;
+let clickedStars = [];
+let wrongFlash = 0;
+let timer = 0;
+let timerInterval = null;
+let constellationOrder = [];
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function getStarPos(s) { return { x: s[0] * W, y: s[1] * H }; }
+
+function drawBg(t) {
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, W, H);
+  for (const s of bgStars) {
+    const alpha = 0.4 + 0.3 * Math.sin(t * 0.001 + s.twinkle);
+    ctx.beginPath();
+    ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200,200,220,${alpha})`;
+    ctx.fill();
+  }
+}
+
+function drawConstellation(c, t) {
+  const stars = c.stars.map(getStarPos);
+  ctx.lineWidth = 2;
+  for (const [a, b] of c.lines) {
+    ctx.beginPath();
+    ctx.moveTo(stars[a].x, stars[a].y);
+    ctx.lineTo(stars[b].x, stars[b].y);
+    ctx.strokeStyle = 'rgba(0,229,255,0.25)';
+    ctx.stroke();
+  }
+  for (let i = 0; i < stars.length; i++) {
+    const s = stars[i];
+    const isClicked = clickedStars.includes(i);
+    const pulse = Math.sin(t * 0.003 + i) * 0.3 + 0.7;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, isClicked ? 7 : 5, 0, Math.PI * 2);
+    ctx.fillStyle = isClicked ? '#00e5ff' : `rgba(255,255,255,${pulse})`;
+    ctx.shadowBlur = isClicked ? 15 : 8;
+    ctx.shadowColor = isClicked ? '#00e5ff' : 'rgba(255,255,255,0.5)';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+function drawConnections() {
+  if (clickedStars.length < 2) return;
+  const c = CONSTELLATIONS[constellationOrder[current]];
+  const stars = c.stars.map(getStarPos);
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = '#00e5ff';
+  for (let i = 1; i < clickedStars.length; i++) {
+    const a = stars[clickedStars[i - 1]];
+    const b = stars[clickedStars[i]];
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+}
+
+function flashWrong() {
+  wrongFlash = 1;
+  setTimeout(() => wrongFlash = 0, 300);
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'show ' + type;
+  setTimeout(() => el.className = '', 1500);
+}
+
+function nextConstellation() {
+  current++;
+  clickedStars = [];
+  timer = 0;
+  if (current >= constellationOrder.length) {
+    state = 'done';
+    showMsg('Quiz complete! Score: ' + score + '/' + attempted, 'info');
+    document.getElementById('const-name').textContent = 'COMPLETE';
+    document.getElementById('timer').textContent = '';
+    return;
+  }
+  const c = CONSTELLATIONS[constellationOrder[current]];
+  document.getElementById('const-name').textContent = c.name.toUpperCase();
+  document.getElementById('progress').textContent = (current + 1) + ' / ' + constellationOrder.length;
+}
+
+canvas.addEventListener('click', (e) => {
+  if (state !== 'playing') return;
+  const c = CONSTELLATIONS[constellationOrder[current]];
+  const stars = c.stars.map(getStarPos);
+  const mx = e.clientX;
+  const my = e.clientY;
+
+  let clicked = -1;
+  for (let i = 0; i < stars.length; i++) {
+    if (clickedStars.includes(i)) continue;
+    const dx = mx - stars[i].x;
+    const dy = my - stars[i].y;
+    if (dx * dx + dy * dy < 400) { clicked = i; break; }
+  }
+
+  if (clicked === -1) return;
+
+  const expected = c.lines;
+  let validNext = false;
+
+  if (clickedStars.length === 0) {
+    validNext = true;
+  } else {
+    const last = clickedStars[clickedStars.length - 1];
+    for (const [a, b] of expected) {
+      if ((a === last && b === clicked) || (b === last && a === clicked)) {
+        validNext = true;
+        break;
+      }
+    }
+  }
+
+  if (validNext) {
+    clickedStars.push(clicked);
+    showMsg('✓', 'correct');
+    if (clickedStars.length >= c.stars.length) {
+      attempted++;
+      score++;
+      setTimeout(nextConstellation, 800);
+    }
+  } else {
+    attempted++;
+    flashWrong();
+    showMsg('✗ wrong star', 'wrong');
+  }
+});
+
+function gameLoop(t) {
+  requestAnimationFrame(gameLoop);
+  drawBg(t);
+  if (state === 'playing') {
+    const c = CONSTELLATIONS[constellationOrder[current]];
+    drawConstellation(c, t);
+    drawConnections();
+    if (wrongFlash) {
+      ctx.fillStyle = 'rgba(255,68,68,0.1)';
+      ctx.fillRect(0, 0, W, H);
+    }
+    document.getElementById('score-info').textContent = score + '/' + attempted;
+  }
+}
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  constellationOrder = shuffle([...Array(CONSTELLATIONS.length).keys()]).slice(0, 20);
+  state = 'playing';
+  current = 0;
+  score = 0;
+  attempted = 0;
+  clickedStars = [];
+  document.getElementById('start-screen').style.display = 'none';
+  nextConstellation();
+});
+
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

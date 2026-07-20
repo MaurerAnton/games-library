@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synthwave Typing</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --green: #00ff88;
+  --purple: #aa44ff;
+  --cyan: #00e5ff;
+  --red: #ff4444;
+  --pink: #ff00aa;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); overflow: hidden; font-family: 'Courier New', monospace; }
+canvas { display: block; }
+#ui {
+  position: fixed; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; padding: 16px 24px;
+  pointer-events: none; z-index: 10;
+}
+#score, #lives { font-size: 20px; letter-spacing: 2px; }
+#score { color: var(--green); text-shadow: 0 0 10px var(--green); }
+#lives { color: var(--red); text-shadow: 0 0 10px var(--red); }
+#combo { position: fixed; top: 44px; left: 24px; color: var(--purple); font-size: 14px; letter-spacing: 2px; text-shadow: 0 0 8px var(--purple); pointer-events: none; z-index: 10; }
+#input-bar {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 10;
+}
+#typed {
+  background: rgba(10,10,15,0.85); border: 1px solid var(--cyan);
+  color: var(--cyan); font-family: 'Courier New', monospace; font-size: 22px;
+  padding: 10px 20px; width: 400px; text-align: center;
+  text-shadow: 0 0 8px var(--cyan); outline: none; letter-spacing: 2px;
+}
+#start-screen, #game-over {
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 20;
+  background: rgba(10,10,15,0.95);
+}
+#start-screen h1, #game-over h1 {
+  font-size: 42px; letter-spacing: 6px; margin-bottom: 8px;
+  color: var(--pink); text-shadow: 0 0 20px var(--pink), 0 0 40px var(--pink);
+}
+#start-screen p, #game-over p {
+  color: var(--grey, #666); letter-spacing: 2px; margin-bottom: 24px; font-size: 14px;
+}
+.mode-btn {
+  background: transparent; border: 1px solid var(--purple); color: var(--purple);
+  font-family: 'Courier New', monospace; font-size: 16px; padding: 10px 28px;
+  margin: 6px; cursor: pointer; letter-spacing: 2px; transition: all 0.2s;
+}
+.mode-btn:hover {
+  background: var(--purple); color: var(--bg);
+  box-shadow: 0 0 15px rgba(170,68,255,0.4);
+}
+#custom-area {
+  display: none; margin-top: 16px;
+}
+#custom-text {
+  width: 400px; height: 100px; background: rgba(10,10,15,0.9);
+  border: 1px solid var(--purple); color: var(--green);
+  font-family: 'Courier New', monospace; font-size: 14px; padding: 10px;
+  resize: none; outline: none;
+}
+#game-over h1 { color: var(--green); text-shadow: 0 0 20px var(--green); }
+#final-score { font-size: 28px; color: var(--cyan); text-shadow: 0 0 10px var(--cyan); margin-bottom: 24px; }
+.hidden { display: none !important; }
+#pause-overlay {
+  position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+  z-index: 25; background: rgba(10,10,15,0.9);
+}
+#pause-overlay.show { display: flex; }
+#pause-overlay span { font-size: 32px; color: var(--purple); letter-spacing: 4px; text-shadow: 0 0 15px var(--purple); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+  <div id="score">SCORE: 0</div>
+  <div id="lives"></div>
+</div>
+<div id="combo"></div>
+<div id="input-bar"><input id="typed" autofocus spellcheck="false" placeholder="type here..."></div>
+
+<div id="start-screen">
+  <h1>SYNTHWAVE TYPING</h1>
+  <p>destroy words before they fall</p>
+  <button class="mode-btn" data-mode="words">WORDS</button>
+  <button class="mode-btn" data-mode="code">CODE</button>
+  <button class="mode-btn" data-mode="custom">CUSTOM</button>
+  <div id="custom-area">
+    <textarea id="custom-text" placeholder="paste your text here..."></textarea>
+    <button class="mode-btn" id="custom-go" style="margin-top:8px">GO</button>
+  </div>
+</div>
+
+<div id="game-over">
+  <h1>GAME OVER</h1>
+  <div id="final-score"></div>
+  <button class="mode-btn" id="restart-btn">RESTART</button>
+</div>
+
+<div id="pause-overlay"><span>PAUSED</span></div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const typedInput = document.getElementById('typed');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const comboEl = document.getElementById('combo');
+const startScreen = document.getElementById('start-screen');
+const gameOverScreen = document.getElementById('game-over');
+const finalScoreEl = document.getElementById('final-score');
+const pauseOverlay = document.getElementById('pause-overlay');
+const customArea = document.getElementById('custom-area');
+
+let W, H;
+function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+resize();
+addEventListener('resize', resize);
+
+const WORDS = ['neon','synth','cyber','pixel','glitch','matrix','binary','codec','debug','stack','array','loop','class','async','await','fetch','react','node','ruby','rust','bash','json','yaml','html','css','dom','api','sql','git','ssh','npm','pip','vim','nano','sudo','root','core','heap','byte','char','int','float','bool','true','false','null','void','this','new','let','var','const','function','return','import','export','default','from','class','extends','super','static','if','else','for','while','do','switch','case','break','continue','try','catch','throw','finally','promise','resolve','reject','then','catch','map','filter','reduce','push','pop','shift','slice','splice','concat','join','split','replace','match','test','search','index','length','keys','values','entries','assign','freeze','create','define','property','descriptor','prototype','constructor','instance','method','field','private','public','protected','abstract','interface','type','enum','namespace','module','package','system','kernel','driver','buffer','stream','socket','server','client','request','response','header','status','error','warning','info','debug','trace','log','print','write','read','open','close','send','recv','connect','bind','listen','accept','select','poll','epoll','kqueue','select','fork','exec','pipe','dup','dup2','fcntl','ioctl','mmap','munmap','brk','sbrk','signal','alarm','kill','exit','wait','status','pid','uid','gid','chmod','chown','chgrp','link','unlink','rename','mkdir','rmdir','symlink','readlink','stat','lstat','fstat','access','umask','mount','umount','chroot','pivot','sync','fsync','fdatasync'];
+
+const CODE_WORDS = ['function','const','let','var','return','if','else','for','while','do','switch','case','break','continue','try','catch','throw','finally','class','extends','super','new','this','import','export','default','from','async','await','yield','typeof','instanceof','in','of','delete','void','null','undefined','true','false','0','1','-1','NaN','Infinity','Math','console','window','document','Array','Object','String','Number','Boolean','Symbol','Map','Set','Promise','RegExp','Date','Error','TypeError','RangeError','SyntaxError','ReferenceError','JSON','Math','parseInt','parseFloat','isNaN','isFinite','encodeURI','decodeURI','setTimeout','setInterval','clearTimeout','clearInterval','fetch','Response','Request','Headers','URL','URLSearchParams','FormData','Blob','File','FileReader','AbortController','AbortSignal','Event','EventTarget','addEventListener','removeEventListener','dispatchEvent'];
+
+let state = 'start';
+let mode = 'words';
+let customWords = [];
+let score = 0;
+let lives = 3;
+let combo = 0;
+let words = [];
+let gridOffset = 0;
+let spawnTimer = 0;
+let spawnInterval = 120;
+let baseSpeed = 0.6;
+let lastTime = 0;
+let paused = false;
+
+function getWordList() {
+  if (mode === 'custom' && customWords.length > 0) return customWords;
+  return mode === 'code' ? CODE_WORDS : WORDS;
+}
+
+function spawnWord() {
+  const list = getWordList();
+  const text = list[Math.floor(Math.random() * list.length)];
+  const metrics = ctx.measureText(text);
+  const tw = metrics.width;
+  words.push({
+    text,
+    x: Math.random() * (W - tw - 40) + 20,
+    y: -20,
+    speed: baseSpeed + Math.random() * 0.4,
+    chars: 0
+  });
+}
+
+function drawGrid(t) {
+  ctx.save();
+  const horizon = H * 0.4;
+  ctx.strokeStyle = 'rgba(170,68,255,0.15)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 20; i++) {
+    const y = horizon + (i * i * 2.5);
+    if (y > H) break;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+  const cx = W / 2;
+  for (let i = -10; i <= 10; i++) {
+    ctx.beginPath();
+    ctx.moveTo(cx + i * 30, horizon);
+    ctx.lineTo(cx + i * 200, H);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawWord(w) {
+  ctx.save();
+  const full = w.text;
+  const typed = full.substring(0, w.chars);
+  const remaining = full.substring(w.chars);
+  ctx.font = '20px "Courier New", monospace';
+  const fullWidth = ctx.measureText(full).width;
+  const typedWidth = ctx.measureText(typed).width;
+
+  if (w.chars === 0) {
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#00ff88';
+    ctx.fillStyle = '#00ff88';
+    ctx.fillText(full, w.x, w.y);
+  } else {
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#00e5ff';
+    ctx.fillStyle = '#00e5ff';
+    ctx.fillText(typed, w.x, w.y);
+    ctx.shadowColor = '#00ff88';
+    ctx.fillStyle = '#00ff88';
+    ctx.fillText(remaining, w.x + typedWidth, w.y);
+  }
+  ctx.restore();
+}
+
+function drawLives() {
+  let s = '';
+  for (let i = 0; i < lives; i++) s += '♥ ';
+  livesEl.textContent = s;
+}
+
+function findTarget() {
+  let best = null;
+  let bestY = -Infinity;
+  for (const w of words) {
+    if (w.chars === 0 && w.y > bestY) {
+      best = w;
+      bestY = w.y;
+    }
+  }
+  if (!best) {
+    for (const w of words) {
+      if (w.y > bestY) { best = w; bestY = w.y; }
+    }
+  }
+  return best;
+}
+
+function gameLoop(timestamp) {
+  if (state !== 'playing') return;
+  requestAnimationFrame(gameLoop);
+  if (paused) return;
+
+  const dt = timestamp - lastTime;
+  lastTime = timestamp;
+
+  gridOffset = (gridOffset + 0.3) % 40;
+
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, W, H);
+
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#0a0a0f');
+  grad.addColorStop(0.4, '#1a0a2e');
+  grad.addColorStop(1, '#0a0a0f');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  drawGrid(timestamp);
+
+  spawnTimer++;
+  if (spawnTimer >= spawnInterval) {
+    spawnTimer = 0;
+    spawnWord();
+  }
+
+  baseSpeed = 0.6 + score * 0.003;
+  if (spawnInterval > 40) spawnInterval = Math.max(40, 120 - Math.floor(score / 5));
+
+  const target = findTarget();
+
+  for (let i = words.length - 1; i >= 0; i--) {
+    const w = words[i];
+    w.y += w.speed * (dt / 16);
+    drawWord(w);
+    if (w === target) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0,229,255,0.3)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(w.x - 4, w.y - 18, ctx.measureText(w.text).width + 8, 24);
+      ctx.restore();
+    }
+    if (w.y > H + 20) {
+      words.splice(i, 1);
+      if (w.chars === 0) {
+        lives--;
+        combo = 0;
+        drawLives();
+        if (lives <= 0) {
+          state = 'gameover';
+          finalScoreEl.textContent = 'SCORE: ' + score;
+          gameOverScreen.classList.remove('hidden');
+          return;
+        }
+      }
+    }
+  }
+
+  scoreEl.textContent = 'SCORE: ' + score;
+  comboEl.textContent = combo > 1 ? 'COMBO x' + combo : '';
+}
+
+typedInput.addEventListener('input', () => {
+  if (state !== 'playing' || paused) return;
+  const val = typedInput.value.toLowerCase();
+  if (!val) return;
+
+  const target = findTarget();
+  if (!target) return;
+
+  const full = target.text.toLowerCase();
+  if (full.startsWith(val)) {
+    target.chars = val.length;
+    if (val.length === full.length) {
+      words = words.filter(w => w !== target);
+      combo++;
+      score += 10 * combo;
+      typedInput.value = '';
+    }
+  } else {
+    let matched = false;
+    for (const w of words) {
+      if (w.chars === 0 && w.text.toLowerCase().startsWith(val)) {
+        matched = true;
+        break;
+      }
+    }
+    if (!matched && words.some(w => w.text.toLowerCase().startsWith(val))) {
+      for (const w of words) {
+        if (w.text.toLowerCase().startsWith(val)) {
+          w.chars = val.length;
+          if (val.length === w.text.toLowerCase().length) {
+            words = words.filter(x => x !== w);
+            combo++;
+            score += 10 * combo;
+            typedInput.value = '';
+          }
+          break;
+        }
+      }
+    } else if (!matched) {
+      combo = 0;
+      typedInput.value = '';
+    }
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && state === 'playing') {
+    paused = !paused;
+    pauseOverlay.classList.toggle('show', paused);
+    if (!paused) { lastTime = performance.now(); requestAnimationFrame(gameLoop); }
+  }
+});
+
+document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    mode = btn.dataset.mode;
+    if (mode === 'custom') {
+      customArea.style.display = 'block';
+      return;
+    }
+    startGame();
+  });
+});
+
+document.getElementById('custom-go').addEventListener('click', () => {
+  const text = document.getElementById('custom-text').value.trim();
+  if (text) {
+    customWords = text.split(/[\s,;]+/).filter(w => w.length > 0);
+    startGame();
+  }
+});
+
+function startGame() {
+  score = 0; lives = 3; combo = 0;
+  words = []; spawnTimer = 0; spawnInterval = 120; baseSpeed = 0.6;
+  typedInput.value = '';
+  drawLives();
+  scoreEl.textContent = 'SCORE: 0';
+  comboEl.textContent = '';
+  startScreen.classList.add('hidden');
+  gameOverScreen.classList.add('hidden');
+  state = 'playing';
+  paused = false;
+  lastTime = performance.now();
+  requestAnimationFrame(gameLoop);
+  typedInput.focus();
+}
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+  startScreen.classList.remove('hidden');
+  gameOverScreen.classList.add('hidden');
+  state = 'start';
+});
+
+typedInput.focus();
+</script>
+</body>
+</html>

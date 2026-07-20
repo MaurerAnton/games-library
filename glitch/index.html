@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glitch Art Generator</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #12121a;
+  --text: #c8c8d8;
+  --grey: #666680;
+  --border: #2a2a3a;
+  --green: #00ff88;
+  --cyan: #00e5ff;
+  --purple: #aa44ff;
+  --red: #ff4444;
+  --pink: #ff00aa;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; min-height: 100vh; }
+#app { display: flex; min-height: 100vh; }
+#sidebar {
+  width: 280px; background: var(--bg2); border-right: 1px solid var(--border);
+  padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
+}
+#main {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 20px; position: relative;
+}
+h1 { font-size: 14px; letter-spacing: 3px; color: var(--pink); }
+.effect-group { border: 1px solid var(--border); border-radius: 4px; padding: 10px; }
+.effect-group label { font-size: 11px; color: var(--grey); letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.effect-group input[type="checkbox"] { accent-color: var(--pink); width: auto; }
+.effect-group input[type="range"] {
+  width: 100%; accent-color: var(--pink); height: 4px;
+}
+.btn {
+  background: transparent; border: 1px solid var(--border); color: var(--text);
+  font-family: 'Courier New', monospace; font-size: 12px; padding: 8px 16px;
+  cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+}
+.btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn.primary { background: var(--pink); color: var(--bg); border-color: var(--pink); }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { flex: 1; }
+#drop-zone {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 5;
+  border: 2px dashed var(--border); margin: 20px; border-radius: 8px;
+  transition: all 0.2s;
+}
+#drop-zone.dragover { border-color: var(--pink); background: rgba(255,0,170,0.05); }
+#drop-zone p { color: var(--grey); letter-spacing: 2px; font-size: 14px; margin-bottom: 12px; }
+#drop-zone.hidden { display: none; }
+#canvas { max-width: 100%; max-height: 100%; }
+#upload-input { display: none; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <h1>GLITCH ART</h1>
+    <div class="effect-group">
+      <label><input type="checkbox" id="fx-rgb"> RGB SHIFT</label>
+      <input type="range" id="int-rgb" min="0" max="100" value="30">
+    </div>
+    <div class="effect-group">
+      <label><input type="checkbox" id="fx-scan"> SCANLINES</label>
+      <input type="range" id="int-scan" min="0" max="100" value="50">
+    </div>
+    <div class="effect-group">
+      <label><input type="checkbox" id="fx-mosh"> DATAMOSH</label>
+      <input type="range" id="int-mosh" min="0" max="100" value="40">
+    </div>
+    <div class="effect-group">
+      <label><input type="checkbox" id="fx-sort"> PIXEL SORT</label>
+      <input type="range" id="int-sort" min="0" max="100" value="50">
+    </div>
+    <div class="effect-group">
+      <label><input type="checkbox" id="fx-noise"> NOISE</label>
+      <input type="range" id="int-noise" min="0" max="100" value="20">
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="randomize-btn">RANDOMIZE</button>
+      <button class="btn" id="reset-btn">RESET</button>
+    </div>
+    <button class="btn primary" id="download-btn">DOWNLOAD PNG</button>
+    <button class="btn" id="upload-btn">UPLOAD IMAGE</button>
+    <input type="file" id="upload-input" accept="image/*">
+  </div>
+  <div id="main">
+    <div id="drop-zone">
+      <p>DROP IMAGE HERE</p>
+      <button class="btn" id="drop-upload-btn">OR CLICK TO UPLOAD</button>
+    </div>
+    <canvas id="canvas"></canvas>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const dropZone = document.getElementById('drop-zone');
+const uploadInput = document.getElementById('upload-input');
+
+let originalImage = null;
+let imageData = null;
+
+const effects = {
+  rgb: { el: 'fx-rgb', int: 'int-rgb' },
+  scan: { el: 'fx-scan', int: 'int-scan' },
+  mosh: { el: 'fx-mosh', int: 'int-mosh' },
+  sort: { el: 'fx-sort', int: 'int-sort' },
+  noise: { el: 'fx-noise', int: 'int-noise' }
+};
+
+function loadImage(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      originalImage = img;
+      const maxW = Math.min(window.innerWidth - 320, 800);
+      const maxH = window.innerHeight - 40;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h *= maxW / w; w = maxW; }
+      if (h > maxH) { w *= maxH / h; h = maxH; }
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      imageData = ctx.getImageData(0, 0, w, h);
+      dropZone.classList.add('hidden');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyEffects() {
+  if (!originalImage) return;
+  ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+  const src = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  if (document.getElementById('fx-sort').checked) pixelSort(src, parseInt(document.getElementById('int-sort').value));
+  if (document.getElementById('fx-mosh').checked) datamosh(src, parseInt(document.getElementById('int-mosh').value));
+  if (document.getElementById('fx-noise').checked) addNoise(src, parseInt(document.getElementById('int-noise').value));
+  if (document.getElementById('fx-rgb').checked) rgbShift(src, parseInt(document.getElementById('int-rgb').value));
+  if (document.getElementById('fx-scan').checked) scanlines(src, parseInt(document.getElementById('int-scan').value));
+
+  ctx.putImageData(src, 0, 0);
+}
+
+function rgbShift(imgData, intensity) {
+  const d = imgData.data;
+  const shift = Math.floor(intensity * 0.5);
+  const len = d.length;
+  const copy = new Uint8ClampedArray(d);
+  for (let i = 0; i < len; i += 4) {
+    const x = (i / 4) % imgData.width;
+    if (x + shift < imgData.width) {
+      d[i] = copy[i + shift * 4];
+    }
+    if (x - shift >= 0) {
+      d[i + 2] = copy[i - shift * 4 + 2];
+    }
+  }
+}
+
+function scanlines(imgData, intensity) {
+  const d = imgData.data;
+  const gap = Math.max(2, Math.floor(10 - intensity * 0.08));
+  const alpha = intensity * 0.01;
+  for (let i = 0; i < d.length; i += 4) {
+    const y = Math.floor((i / 4) / imgData.width);
+    if (y % gap === 0) {
+      d[i] = d[i] * (1 - alpha);
+      d[i + 1] = d[i + 1] * (1 - alpha);
+      d[i + 2] = d[i + 2] * (1 - alpha);
+    }
+  }
+}
+
+function datamosh(imgData, intensity) {
+  const d = imgData.data;
+  const w = imgData.width, h = imgData.height;
+  const blocks = Math.floor(intensity * 0.3) + 1;
+  const copy = new Uint8ClampedArray(d);
+  for (let b = 0; b < blocks; b++) {
+    const bw = Math.floor(Math.random() * 60 + 20);
+    const bh = Math.floor(Math.random() * 40 + 10);
+    const sx = Math.floor(Math.random() * (w - bw));
+    const sy = Math.floor(Math.random() * (h - bh));
+    const dx = Math.floor(Math.random() * (w - bw));
+    const dy = Math.floor(Math.random() * (h - bh));
+    for (let y = 0; y < bh; y++) {
+      for (let x = 0; x < bw; x++) {
+        const si = ((sy + y) * w + (sx + x)) * 4;
+        const di = ((dy + y) * w + (dx + x)) * 4;
+        d[di] = copy[si];
+        d[di + 1] = copy[si + 1];
+        d[di + 2] = copy[si + 2];
+      }
+    }
+  }
+}
+
+function pixelSort(imgData, intensity) {
+  const d = imgData.data;
+  const w = imgData.width, h = imgData.height;
+  const threshold = 255 - intensity * 2.55;
+  for (let y = 0; y < h; y++) {
+    const row = [];
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const brightness = (d[i] + d[i + 1] + d[i + 2]) / 3;
+      row.push({ r: d[i], g: d[i + 1], b: d[i + 2], a: d[i + 3], brightness });
+    }
+    let start = 0;
+    for (let x = 0; x <= w; x++) {
+      const b = x < w ? row[x].brightness : 255;
+      if (b < threshold || x === w) {
+        if (x - start > 1) {
+          const segment = row.slice(start, x);
+          segment.sort((a, b) => a.brightness - b.brightness);
+          for (let j = 0; j < segment.length; j++) {
+            const i = (y * w + (start + j)) * 4;
+            d[i] = segment[j].r;
+            d[i + 1] = segment[j].g;
+            d[i + 2] = segment[j].b;
+          }
+        }
+        start = x + 1;
+      }
+    }
+  }
+}
+
+function addNoise(imgData, intensity) {
+  const d = imgData.data;
+  const amount = intensity * 2.55;
+  for (let i = 0; i < d.length; i += 4) {
+    if (Math.random() < intensity * 0.01) {
+      d[i] = Math.min(255, d[i] + (Math.random() - 0.5) * amount);
+      d[i + 1] = Math.min(255, d[i + 1] + (Math.random() - 0.5) * amount);
+      d[i + 2] = Math.min(255, d[i + 2] + (Math.random() - 0.5) * amount);
+    }
+  }
+}
+
+Object.values(effects).forEach(fx => {
+  document.getElementById(fx.el).addEventListener('change', applyEffects);
+  document.getElementById(fx.int).addEventListener('input', applyEffects);
+});
+
+document.getElementById('randomize-btn').addEventListener('click', () => {
+  Object.values(effects).forEach(fx => {
+    document.getElementById(fx.el).checked = Math.random() > 0.4;
+    document.getElementById(fx.int).value = Math.floor(Math.random() * 80 + 10);
+  });
+  applyEffects();
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  Object.values(effects).forEach(fx => {
+    document.getElementById(fx.el).checked = false;
+    document.getElementById(fx.int).value = 50;
+  });
+  applyEffects();
+});
+
+document.getElementById('download-btn').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = 'glitch-art.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+});
+
+document.getElementById('upload-btn').addEventListener('click', () => uploadInput.click());
+document.getElementById('drop-upload-btn').addEventListener('click', () => uploadInput.click());
+uploadInput.addEventListener('change', (e) => { if (e.target.files[0]) loadImage(e.target.files[0]); });
+
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
+});
+</script>
+</body>
+</html>
