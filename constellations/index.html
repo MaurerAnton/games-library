@@ -2,73 +2,76 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Constellation Quiz</title>
 <style>
-:root{--bg:#0a0a0f;--green:#00ff88;--purple:#aa44ff;--cyan:#00e5ff;--red:#ff4444;--text:#c8c8d8;--grey:#666680}
+:root{--bg:#0a0a0f;--green:#00ff88;--purple:#aa44ff;--cyan:#00e5ff;--red:#ff4444;--text:#c8c8d8;--grey:#666680;--border:#2a2a3a}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);overflow:hidden;font-family:'Courier New',monospace}
+body{background:var(--bg);overflow:hidden;font-family:'Courier New',monospace;-webkit-user-select:none;user-select:none}
 canvas{display:block;cursor:pointer}
-#nav{position:fixed;top:0;left:0;right:0;height:36px;z-index:100;background:rgba(10,10,15,0.92);border-bottom:1px solid #2a2a3a;display:flex;align-items:center;padding:0 16px;gap:4px;font-size:11px;letter-spacing:1px}
-#nav a{color:#666680;text-decoration:none;padding:6px 10px;border-radius:3px;transition:all 0.2s;font-family:'Courier New',monospace}
-#nav a:hover{color:#00e5ff;background:rgba(0,229,255,0.08)}
-#nav a.active{color:#00e5ff;background:rgba(0,229,255,0.1)}
-#nav .label{color:#aa44ff;margin-right:8px;font-weight:bold}
-#hud{position:fixed;top:36px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:12px 24px;pointer-events:none;z-index:10}
-#const-name{font-size:22px;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
-#score-info{color:var(--green);font-size:16px;letter-spacing:2px;text-shadow:0 0 8px var(--green)}
-#timer{color:var(--purple);font-size:16px;letter-spacing:2px;text-shadow:0 0 8px var(--purple)}
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:rgba(10,10,15,0.95);padding-top:36px}
-.screen h1{font-size:36px;letter-spacing:6px;margin-bottom:8px;color:var(--cyan);text-shadow:0 0 20px var(--cyan)}
-.screen p{color:var(--grey);letter-spacing:2px;margin-bottom:24px;font-size:14px;max-width:500px;text-align:center;line-height:1.6}
-.screen .btn{background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-family:'Courier New',monospace;font-size:16px;padding:10px 28px;cursor:pointer;letter-spacing:2px;transition:all 0.2s;margin:4px}
-.screen .btn:hover{background:var(--cyan);color:var(--bg);box-shadow:0 0 15px rgba(0,229,255,0.4)}
+#nav{position:fixed;top:0;left:0;right:0;height:36px;z-index:100;background:rgba(10,10,15,0.92);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:4px;font-size:11px;letter-spacing:1px}
+#nav a{color:var(--grey);text-decoration:none;padding:6px 8px;border-radius:3px;transition:all 0.2s;font-family:'Courier New',monospace}
+#nav a:hover,#nav a:active{color:var(--cyan);background:rgba(0,229,255,0.08)}
+#nav a.active{color:var(--cyan);background:rgba(0,229,255,0.1)}
+#nav .label{color:var(--purple);margin-right:4px;font-weight:bold}
+#hud{position:fixed;top:36px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;pointer-events:none;z-index:10}
+#const-name{font-size:16px;letter-spacing:2px;color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
+#score-info{color:var(--green);font-size:14px;letter-spacing:2px;text-shadow:0 0 8px var(--green)}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:rgba(10,10,15,0.97);padding:40px 16px 16px;overflow-y:auto}
+.screen h1{font-size:28px;letter-spacing:4px;margin-bottom:8px;color:var(--cyan);text-shadow:0 0 20px var(--cyan)}
+.screen p{color:var(--grey);letter-spacing:1px;margin-bottom:16px;font-size:13px;max-width:500px;text-align:center;line-height:1.6}
+.screen .btn{background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-family:'Courier New',monospace;font-size:14px;padding:10px 20px;cursor:pointer;letter-spacing:2px;transition:all 0.2s;margin:4px}
+.screen .btn:hover,.screen .btn:active{background:var(--cyan);color:var(--bg);box-shadow:0 0 15px rgba(0,229,255,0.4)}
 .screen .btn.active{background:var(--cyan);color:var(--bg)}
-.mode-row{display:flex;gap:8px;margin-bottom:20px}
-.count-row{display:flex;align-items:center;gap:12px;margin-bottom:20px;font-size:14px;color:var(--grey)}
-.count-row input{width:60px;background:rgba(10,10,15,0.9);border:1px solid var(--purple);color:var(--purple);font-family:'Courier New',monospace;font-size:18px;padding:6px;text-align:center;outline:none;border-radius:4px}
-#msg{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);font-size:18px;letter-spacing:2px;padding:10px 24px;border-radius:4px;z-index:15;opacity:0;transition:opacity 0.3s;pointer-events:none}
+.mode-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;justify-content:center}
+.count-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:13px;color:var(--grey);flex-wrap:wrap;justify-content:center}
+.count-row input{width:60px;background:rgba(10,10,15,0.9);border:1px solid var(--purple);color:var(--purple);font-family:'Courier New',monospace;font-size:16px;padding:6px;text-align:center;outline:none;border-radius:4px}
+#msg{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);font-size:16px;letter-spacing:2px;padding:10px 20px;border-radius:4px;z-index:15;opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:90vw;text-align:center}
 #msg.show{opacity:1}
 #msg.correct{background:rgba(0,255,136,0.15);color:var(--green);border:1px solid var(--green)}
 #msg.wrong{background:rgba(255,68,68,0.15);color:var(--red);border:1px solid var(--red)}
 #msg.info{background:rgba(0,229,255,0.1);color:var(--cyan);border:1px solid var(--cyan)}
-#progress{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--grey);letter-spacing:2px;z-index:10}
+#progress{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--grey);letter-spacing:2px;z-index:10}
 .hidden{display:none!important}
-#quiz-input{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:15}
-#quiz-input input{background:rgba(10,10,15,0.85);border:1px solid var(--cyan);color:var(--cyan);font-family:'Courier New',monospace;font-size:18px;padding:8px 16px;width:300px;text-align:center;outline:none;letter-spacing:2px}
+#quiz-input{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:15;width:90%;max-width:340px}
+#quiz-input input{width:100%;background:rgba(10,10,15,0.85);border:1px solid var(--cyan);color:var(--cyan);font-family:'Courier New',monospace;font-size:16px;padding:10px;text-align:center;outline:none;letter-spacing:2px}
 #browse-nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:15}
-#browse-nav button{background:transparent;border:1px solid var(--purple);color:var(--purple);font-family:'Courier New',monospace;font-size:14px;padding:8px 20px;cursor:pointer;transition:all 0.2s}
-#browse-nav button:hover{background:var(--purple);color:var(--bg)}
+#browse-nav button{background:transparent;border:1px solid var(--purple);color:var(--purple);font-family:'Courier New',monospace;font-size:13px;padding:8px 16px;cursor:pointer;transition:all 0.2s}
+#browse-nav button:hover,#browse-nav button:active{background:var(--purple);color:var(--bg)}
+#info-panel{position:fixed;bottom:60px;left:8px;right:8px;max-height:40vh;overflow-y:auto;background:rgba(10,10,15,0.92);border:1px solid var(--border);border-radius:8px;padding:12px;z-index:12;font-size:12px;color:var(--grey);line-height:1.5}
+#info-panel h3{color:var(--cyan);font-size:14px;margin-bottom:6px;letter-spacing:2px}
+#info-panel .desc{margin-bottom:8px}
+#info-panel .hist{color:var(--purple);font-style:italic}
 </style>
 </head>
 <body>
 <nav id="nav">
   <span class="label">GAMES</span>
-  <a href="../typing/">Typing</a>
   <a href="../constellations/" class="active">Constellations</a>
   <a href="../glitch/">Glitch</a>
 </nav>
 <canvas id="c"></canvas>
-<div id="hud"><div id="const-name"></div><div id="timer"></div><div id="score-info"></div></div>
+<div id="hud"><div id="const-name"></div><div id="score-info"></div></div>
 <div id="msg"></div>
 <div id="progress"></div>
-<div id="quiz-input" class="hidden"><input id="quiz-field" placeholder="type constellation name..." spellcheck="false"></div>
-<div id="browse-nav" class="hidden"><button id="prev-btn">← PREV</button><button id="next-btn">NEXT →</button></div>
+<div id="quiz-input" class="hidden"><input id="quiz-field" placeholder="type constellation name..." spellcheck="false" autocomplete="off"></div>
+<div id="browse-nav" class="hidden"><button id="prev-btn">← PREV</button><button id="info-toggle-btn">ℹ INFO</button><button id="next-btn">NEXT →</button></div>
+<div id="info-panel" class="hidden"></div>
 
 <div class="screen" id="start-screen">
   <h1>CONSTELLATIONS</h1>
-  <p>Learn the 88 IAU constellations</p>
+  <p>Learn the 88 IAU constellations — their shapes, names, and stories</p>
   <div class="mode-row">
     <button class="btn" id="edu-btn">📚 EDUCATIONAL</button>
     <button class="btn" id="train-btn">🎯 TRAINING</button>
   </div>
   <div id="edu-options" class="hidden">
-    <p>Browse constellations with names and stars. Use arrow buttons to navigate.</p>
+    <p>Browse constellations with associative overlays, descriptions, and history.</p>
     <button class="btn" id="edu-start">START BROWSING</button>
   </div>
   <div id="train-options" class="hidden">
-    <div class="count-row"><span>How many to study:</span><input type="number" id="train-count" value="5" min="1" max="20"></div>
-    <p>Study each constellation, then type its name in the quiz.</p>
+    <div class="count-row"><span>How many to train:</span><input type="number" id="train-count" value="5" min="1" max="20"></div>
+    <p>Study each constellation, then quiz. Keep going until you get them all right!</p>
     <button class="btn" id="train-start">START TRAINING</button>
   </div>
 </div>
@@ -85,68 +88,137 @@ function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight-NAV_H;ca
 resize();addEventListener('resize',resize);
 
 const CONSTELLATIONS=[
-  {name:"Orion",stars:[[0.5,0.15],[0.45,0.25],[0.55,0.25],[0.4,0.35],[0.5,0.35],[0.6,0.35],[0.42,0.5],[0.58,0.5]],lines:[[0,1],[0,2],[1,3],[2,5],[3,4],[4,5],[3,6],[5,7]]},
-  {name:"Ursa Major",stars:[[0.2,0.3],[0.28,0.28],[0.35,0.3],[0.4,0.35],[0.48,0.33],[0.55,0.28],[0.6,0.25]],lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[3,6]]},
-  {name:"Cassiopeia",stars:[[0.2,0.4],[0.3,0.25],[0.4,0.38],[0.5,0.2],[0.6,0.35]],lines:[[0,1],[1,2],[2,3],[3,4]]},
-  {name:"Leo",stars:[[0.3,0.3],[0.35,0.2],[0.4,0.22],[0.45,0.25],[0.5,0.3],[0.55,0.35],[0.45,0.4]],lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[4,6],[6,0]]},
-  {name:"Scorpius",stars:[[0.4,0.15],[0.42,0.22],[0.45,0.3],[0.48,0.38],[0.5,0.45],[0.52,0.52],[0.55,0.6],[0.58,0.65],[0.55,0.7],[0.5,0.68]],lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9]]},
-  {name:"Cygnus",stars:[[0.5,0.15],[0.5,0.3],[0.5,0.45],[0.5,0.6],[0.35,0.35],[0.65,0.35]],lines:[[0,1],[1,2],[2,3],[4,1],[1,5]]},
-  {name:"Lyra",stars:[[0.5,0.2],[0.45,0.35],[0.55,0.35],[0.43,0.45],[0.57,0.45]],lines:[[0,1],[0,2],[1,3],[2,4],[3,4]]},
-  {name:"Gemini",stars:[[0.35,0.15],[0.55,0.15],[0.38,0.3],[0.52,0.3],[0.4,0.45],[0.5,0.45],[0.42,0.55],[0.48,0.55]],lines:[[0,2],[2,4],[4,6],[1,3],[3,5],[5,7],[0,1]]},
-  {name:"Canis Major",stars:[[0.5,0.15],[0.48,0.28],[0.52,0.28],[0.45,0.4],[0.55,0.4],[0.5,0.55],[0.42,0.6],[0.58,0.6]],lines:[[0,1],[0,2],[1,3],[2,4],[3,5],[4,5],[5,6],[5,7]]},
-  {name:"Carina",stars:[[0.3,0.3],[0.4,0.2],[0.5,0.35],[0.6,0.25],[0.7,0.3],[0.5,0.5]],lines:[[0,1],[1,2],[2,3],[3,4],[2,5]]},
-  {name:"Crux",stars:[[0.4,0.2],[0.6,0.2],[0.5,0.1],[0.5,0.4],[0.4,0.5],[0.6,0.5]],lines:[[0,2],[2,1],[3,0],[3,1],[0,4],[1,5]]},
-  {name:"Centaurus",stars:[[0.2,0.3],[0.35,0.2],[0.5,0.25],[0.65,0.3],[0.7,0.45],[0.55,0.5],[0.35,0.45]],lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]]},
-  {name:"Hercules",stars:[[0.5,0.15],[0.4,0.3],[0.6,0.3],[0.35,0.45],[0.65,0.45],[0.4,0.6],[0.6,0.6]],lines:[[0,1],[0,2],[1,3],[2,4],[3,5],[4,6],[1,2],[3,4]]},
-  {name:"Perseus",stars:[[0.5,0.1],[0.45,0.22],[0.55,0.22],[0.4,0.35],[0.6,0.35],[0.35,0.5],[0.5,0.5],[0.65,0.5]],lines:[[0,1],[0,2],[1,3],[2,4],[3,5],[3,6],[4,6],[4,7]]},
-  {name:"Andromeda",stars:[[0.2,0.35],[0.35,0.3],[0.5,0.25],[0.65,0.2],[0.4,0.4],[0.55,0.45]],lines:[[0,1],[1,2],[2,3],[1,4],[4,5]]},
-  {name:"Pegasus",stars:[[0.3,0.2],[0.7,0.2],[0.7,0.6],[0.3,0.6]],lines:[[0,1],[1,2],[2,3],[3,0]]},
-  {name:"Triangulum",stars:[[0.5,0.15],[0.4,0.5],[0.6,0.5]],lines:[[0,1],[1,2],[2,0]]},
-  {name:"Delphinus",stars:[[0.5,0.2],[0.43,0.35],[0.57,0.35],[0.5,0.5],[0.42,0.42]],lines:[[0,1],[0,2],[1,3],[2,3],[1,4],[4,2]]},
-  {name:"Aquila",stars:[[0.5,0.15],[0.4,0.35],[0.6,0.35],[0.35,0.5],[0.65,0.5],[0.5,0.6]],lines:[[0,1],[0,2],[1,3],[2,4],[1,5],[2,5]]},
-  {name:"Corvus",stars:[[0.4,0.25],[0.6,0.25],[0.6,0.5],[0.4,0.5]],lines:[[0,1],[1,2],[2,3],[3,0],[0,2]]}
+  {name:"Orion",stars:[[0.5,0.15],[0.45,0.25],[0.55,0.25],[0.4,0.35],[0.5,0.35],[0.6,0.35],[0.42,0.5],[0.58,0.5]],lines:[[0,1],[0,2],[1,3],[2,5],[3,4],[4,5],[3,6],[5,7]],
+    desc:"The Hunter — one of the most recognizable constellations. Belt of three stars in a row, with bright Betelgeuse (shoulder) and Rigel (foot).",
+    history:"Named after a hunter in Greek mythology who was placed among the stars by Zeus. Visible worldwide, it contains the Orion Nebula (M42), one of the brightest nebulae in the sky.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-0.35);ctx.lineTo(-0.15,-0.15);ctx.moveTo(0,-0.35);ctx.lineTo(0.15,-0.15);ctx.moveTo(-0.15,-0.15);ctx.lineTo(-0.2,0.05);ctx.moveTo(0.15,-0.15);ctx.lineTo(0.2,0.05);ctx.moveTo(-0.2,0.05);ctx.lineTo(-0.15,0.25);ctx.moveTo(0.2,0.05);ctx.lineTo(0.15,0.25);ctx.stroke();ctx.restore()}},
+  {name:"Ursa Major",stars:[[0.2,0.3],[0.28,0.28],[0.35,0.3],[0.4,0.35],[0.48,0.33],[0.55,0.28],[0.6,0.25]],lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[3,6]],
+    desc:"The Great Bear — contains the Big Dipper asterism (7 bright stars forming a ladle shape). The two stars at the end of the dipper point to Polaris.",
+    history:"One of the oldest constellations, known since prehistoric times. In Greek myth, Zeus placed the bear among the stars to protect it from hunters. The Big Dipper is used worldwide for navigation.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-0.3,0.05);ctx.lineTo(-0.1,0);ctx.lineTo(0,0.05);ctx.lineTo(0.1,0);ctx.lineTo(0.2,0.1);ctx.lineTo(0.35,0.2);ctx.moveTo(0,0.05);ctx.lineTo(0.05,0.2);ctx.stroke();ctx.restore()}},
+  {name:"Cassiopeia",stars:[[0.2,0.4],[0.3,0.25],[0.4,0.38],[0.5,0.2],[0.6,0.35]],lines:[[0,1],[1,2],[2,3],[3,4]],
+    desc:"The Queen — a distinctive W or M shape (depending on orientation). Five bright stars form a zigzag pattern circumpolar in the northern sky.",
+    history:"Named after the vain queen in Greek mythology who boasted about her beauty. She sits on her throne in the sky, near the pole star. The Milky Way runs through this constellation.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-0.3,0.1);ctx.lineTo(-0.15,-0.15);ctx.lineTo(0,0.1);ctx.lineTo(0.15,-0.15);ctx.lineTo(0.3,0.05);ctx.stroke();ctx.restore()}},
+  {name:"Leo",stars:[[0.3,0.3],[0.35,0.2],[0.4,0.22],[0.45,0.25],[0.5,0.3],[0.55,0.35],[0.45,0.4]],lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[4,6],[6,0]],
+    desc:"The Lion — the sickle (backward question mark) forms the lion's head and mane, with Regulus as the brightest star at the base.",
+    history:"One of the zodiac constellations. In Greek myth, Heracles slew the Nemean Lion as his first labor. The lion's hide was impenetrable, so Heracles strangled it. Regulus means 'little king'.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(-0.05,-0.1,0.15,0,Math.PI*1.5);ctx.moveTo(-0.2,0.1);ctx.lineTo(-0.3,0.15);ctx.moveTo(-0.2,0.1);ctx.lineTo(-0.15,0.25);ctx.stroke();ctx.restore()}},
+  {name:"Scorpius",stars:[[0.4,0.15],[0.42,0.22],[0.45,0.3],[0.48,0.38],[0.5,0.45],[0.52,0.52],[0.55,0.6],[0.58,0.65],[0.55,0.7],[0.5,0.68]],lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9]],
+    desc:"The Scorpion — a long, curving constellation with bright red Antares (the heart). The tail curves down toward the horizon with a stinger at the end.",
+    history:"In Greek myth, the scorpion was sent by Gaia to kill Orion. Both were placed in the sky on opposite sides. Scorpius is best seen in summer in the southern sky. Antares means 'rival of Mars' due to its red color.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-0.3);ctx.lineTo(0,-0.15);ctx.quadraticCurveTo(0.1,0.1,0.05,0.25);ctx.quadraticCurveTo(-0.05,0.35,0.1,0.3);ctx.moveTo(0.05,0.3);ctx.lineTo(0.15,0.35);ctx.stroke();ctx.restore()}},
+  {name:"Cygnus",stars:[[0.5,0.15],[0.5,0.3],[0.5,0.45],[0.5,0.6],[0.35,0.35],[0.65,0.35]],lines:[[0,1],[1,2],[2,3],[4,1],[1,5]],
+    desc:"The Swan — shaped like a flying bird with a long neck. Deneb is the tail star, one of the corners of the Summer Triangle.",
+    history:"Also called the Northern Cross. In Greek myth, Zeus disguised himself as a swan. The constellation flies along the Milky Way. Deneb is one of the most luminous stars known, over 200,000 times the Sun's brightness.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-0.3);ctx.lineTo(0,0.25);ctx.moveTo(-0.2,-0.05);ctx.lineTo(0.2,-0.05);ctx.moveTo(0,-0.3);ctx.quadraticCurveTo(0.05,-0.35,0.08,-0.3);ctx.stroke();ctx.restore()}},
+  {name:"Lyra",stars:[[0.5,0.2],[0.45,0.35],[0.55,0.35],[0.43,0.45],[0.57,0.45]],lines:[[0,1],[0,2],[1,3],[2,4],[3,4]],
+    desc:"The Lyre — a small constellation with bright Vega, one of the brightest stars in the sky. The parallelogram below Vega forms the lyre's body.",
+    history:"Represents the lyre of Orpheus, whose music could charm animals and stones. Vega was the northern pole star around 12,000 BCE and will be again around 13,727 CE. Part of the Summer Triangle.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-0.15,0.08,0,Math.PI*2);ctx.moveTo(-0.05,0);ctx.lineTo(-0.08,0.15);ctx.lineTo(0.08,0.15);ctx.lineTo(0.05,0);ctx.stroke();ctx.restore()}},
+  {name:"Gemini",stars:[[0.35,0.15],[0.55,0.15],[0.38,0.3],[0.52,0.3],[0.4,0.45],[0.5,0.45],[0.42,0.55],[0.48,0.55]],lines:[[0,2],[2,4],[4,6],[1,3],[3,5],[5,7],[0,1]],
+    desc:"The Twins — two parallel lines of stars representing Castor and Pollux. The twin brothers stand side by side, with Pollux being the brighter twin.",
+    history:"Castor and Pollux were twin brothers in Greek mythology. Castor was mortal, Pollux divine. When Castor died, Pollux asked Zeus to let them live together in the stars. Pollux is a giant orange star.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(-0.1,-0.15,0.08,0,Math.PI*2);ctx.moveTo(-0.1,-0.07);ctx.lineTo(-0.1,0.15);ctx.moveTo(-0.1,0.15);ctx.lineTo(-0.15,0.25);ctx.moveTo(-0.1,0.15);ctx.lineTo(-0.05,0.25);ctx.arc(0.1,-0.15,0.08,0,Math.PI*2);ctx.moveTo(0.1,-0.07);ctx.lineTo(0.1,0.15);ctx.moveTo(0.1,0.15);ctx.lineTo(0.05,0.25);ctx.moveTo(0.1,0.15);ctx.lineTo(0.15,0.25);ctx.stroke();ctx.restore()}},
+  {name:"Canis Major",stars:[[0.5,0.15],[0.48,0.28],[0.52,0.28],[0.45,0.4],[0.55,0.4],[0.5,0.55],[0.42,0.6],[0.58,0.6]],lines:[[0,1],[0,2],[1,3],[2,4],[3,5],[4,5],[5,6],[5,7]],
+    desc:"The Great Dog — contains Sirius, the brightest star in the night sky. The dog stands below Orion, as if following the hunter.",
+    history:"Sirius is called the Dog Star. The ancient Egyptians used its rising to predict the Nile flood. The 'dog days of summer' refer to Sirius rising with the Sun. In Greek myth, this is one of Orion's hunting dogs.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-0.3);ctx.lineTo(-0.05,-0.15);ctx.lineTo(-0.08,0);ctx.lineTo(-0.12,0.15);ctx.moveTo(-0.12,0.15);ctx.lineTo(-0.2,0.25);ctx.moveTo(-0.12,0.15);ctx.lineTo(-0.05,0.25);ctx.moveTo(0,-0.3);ctx.lineTo(0.05,-0.15);ctx.lineTo(0.08,0);ctx.lineTo(0.12,0.15);ctx.stroke();ctx.restore()}},
+  {name:"Carina",stars:[[0.3,0.3],[0.4,0.2],[0.5,0.35],[0.6,0.25],[0.7,0.3],[0.5,0.5]],lines:[[0,1],[1,2],[2,3],[3,4],[2,5]],
+    desc:"The Keel — part of the old constellation Argo Navis (the ship). Contains Canopus, the second brightest star in the night sky.",
+    history:"Originally part of Argo Navis, the ship of Jason and the Argonauts. French astronomer Lacaille split it into Carina (keel), Puppis (stern), and Vela (sails) in the 1750s. Visible primarily in the southern hemisphere.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-0.2,0.1);ctx.quadraticCurveTo(0,-0.2,0.3,0.05);ctx.moveTo(-0.1,0);ctx.lineTo(0,0.2);ctx.stroke();ctx.restore()}},
+  {name:"Crux",stars:[[0.4,0.2],[0.6,0.2],[0.5,0.1],[0.5,0.4],[0.4,0.5],[0.6,0.5]],lines:[[0,2],[2,1],[3,0],[3,1],[0,4],[1,5]],
+    desc:"The Southern Cross — the smallest of the 88 constellations but one of the most famous. Used for navigation in the southern hemisphere.",
+    history:"Known to ancient Greeks but became visible to Europeans as they sailed south. The Southern Cross points to the south celestial pole. It appears on the flags of Australia, New Zealand, Brazil, and Samoa.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-0.2);ctx.lineTo(0,0.25);ctx.moveTo(-0.15,0);ctx.lineTo(0.15,0);ctx.stroke();ctx.restore()}},
+  {name:"Centaurus",stars:[[0.2,0.3],[0.35,0.2],[0.5,0.25],[0.65,0.3],[0.7,0.45],[0.55,0.5],[0.35,0.45]],lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]],
+    desc:"The Centaur — a large constellation representing a centaur (half human, half horse). Contains Alpha Centauri, the closest star system to the Sun.",
+    history:"In Greek myth, Centaurus was the first centaur, son of Kronos. Alpha Centauri is actually a triple star system just 4.37 light-years away. Proxima Centauri, its closest member, is the nearest star to the Sun.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(-0.15,-0.15,0.08,0,Math.PI*2);ctx.moveTo(-0.15,-0.07);ctx.lineTo(-0.1,0.05);ctx.lineTo(0,0.1);ctx.lineTo(0.15,0.15);ctx.moveTo(-0.1,0.05);ctx.lineTo(-0.2,0.2);ctx.moveTo(-0.1,0.05);ctx.lineTo(0,0.2);ctx.stroke();ctx.restore()}},
+  {name:"Hercules",stars:[[0.5,0.15],[0.4,0.3],[0.6,0.3],[0.35,0.45],[0.65,0.45],[0.4,0.6],[0.6,0.6]],lines:[[0,1],[0,2],[1,3],[2,4],[3,5],[4,6],[1,2],[3,4]],
+    desc:"The Hero — contains the Keystone asterism (four stars forming a trapezoid). M13, the Great Hercules Cluster, is a globular cluster of 300,000 stars.",
+    history:"Represents Heracles, the greatest hero of Greek mythology. The Keystone represents Hercules' torso. He is shown kneeling, fighting the dragon Draco. M13 was one of the first objects targeted by SETI.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-0.2,0.07,0,Math.PI*2);ctx.moveTo(0,-0.13);ctx.lineTo(-0.05,0.05);ctx.lineTo(-0.15,0.15);ctx.moveTo(-0.05,0.05);ctx.lineTo(0.05,0.05);ctx.lineTo(0.15,0.15);ctx.moveTo(-0.05,0.05);ctx.lineTo(-0.1,0.25);ctx.moveTo(0.05,0.05);ctx.lineTo(0.1,0.25);ctx.stroke();ctx.restore()}},
+  {name:"Perseus",stars:[[0.5,0.1],[0.45,0.22],[0.55,0.22],[0.4,0.35],[0.6,0.35],[0.35,0.5],[0.5,0.5],[0.65,0.5]],lines:[[0,1],[0,2],[1,3],[2,4],[3,5],[3,6],[4,6],[4,7]],
+    desc:"The Hero — contains Algol (the Demon Star), a famous eclipsing binary that dims every 2.87 days. Perseus holds the head of Medusa.",
+    history:"Perseus slew Medusa, the Gorgon whose gaze turned people to stone. He used Medusa's head to save Andromeda from a sea monster. Algol represents Medusa's blinking eye. The Perseid meteor shower peaks every August.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-0.2,0.07,0,Math.PI*2);ctx.moveTo(0,-0.13);ctx.lineTo(-0.05,0);ctx.lineTo(-0.15,0.15);ctx.moveTo(-0.05,0);ctx.lineTo(0.05,0);ctx.lineTo(0.15,0.15);ctx.moveTo(-0.05,0);ctx.lineTo(-0.1,0.25);ctx.moveTo(0.05,0);ctx.lineTo(0.1,0.25);ctx.stroke();ctx.restore()}},
+  {name:"Andromeda",stars:[[0.2,0.35],[0.35,0.3],[0.5,0.25],[0.65,0.2],[0.4,0.4],[0.55,0.45]],lines:[[0,1],[1,2],[2,3],[1,4],[4,5]],
+    desc:"The Princess — a chain of stars extending from Pegasus. Contains the Andromeda Galaxy (M31), the most distant object visible to the naked eye at 2.5 million light-years.",
+    history:"Andromeda was the daughter of King Cepheus and Queen Cassiopeia. She was chained to a rock as sacrifice to a sea monster, but Perseus saved her. M31 is on a collision course with the Milky Way in about 4.5 billion years.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(-0.2,-0.1,0.06,0,Math.PI*2);ctx.moveTo(-0.2,-0.04);ctx.lineTo(-0.05,0.02);ctx.lineTo(0.1,0.05);ctx.lineTo(0.25,0.1);ctx.moveTo(-0.05,0.02);ctx.lineTo(0,0.15);ctx.moveTo(0,0.15);ctx.lineTo(0.15,0.18);ctx.stroke();ctx.restore()}},
+  {name:"Pegasus",stars:[[0.3,0.2],[0.7,0.2],[0.7,0.6],[0.3,0.6]],lines:[[0,1],[1,2],[2,3],[3,0]],
+    desc:"The Winged Horse — the Great Square of Pegasus is a prominent asterism. Four stars form a large square in the autumn sky.",
+    history:"Pegasus sprang from the blood of Medusa when Perseus beheaded her. The horse carried Bellerophon into battle against the Chimera. The Great Square is one of the easiest asterisms to find in autumn.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(-0.1,-0.2,0.06,0,Math.PI*2);ctx.moveTo(-0.1,-0.14);ctx.lineTo(0,-0.05);ctx.lineTo(0.15,0.1);ctx.moveTo(0,-0.05);ctx.lineTo(-0.1,0.15);ctx.moveTo(-0.15,-0.1);ctx.quadraticCurveTo(-0.25,-0.2,-0.2,-0.3);ctx.stroke();ctx.restore()}},
+  {name:"Triangulum",stars:[[0.5,0.15],[0.4,0.5],[0.6,0.5]],lines:[[0,1],[1,2],[2,0]],
+    desc:"The Triangle — a small constellation with three stars forming a triangle. Contains the Triangulum Galaxy (M33), a member of the Local Group.",
+    history:"One of Ptolemy's 48 constellations. The name is simply Latin for 'triangle'. M33 is the third-largest galaxy in the Local Group after Andromeda and the Milky Way, about 2.7 million light-years away.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-0.3);ctx.lineTo(-0.15,0.2);ctx.lineTo(0.15,0.2);ctx.closePath();ctx.stroke();ctx.restore()}},
+  {name:"Delphinus",stars:[[0.5,0.2],[0.43,0.35],[0.57,0.35],[0.5,0.5],[0.42,0.42]],lines:[[0,1],[0,2],[1,3],[2,3],[1,4],[4,2]],
+    desc:"The Dolphin — a small, distinctive constellation shaped like a leaping dolphin. The diamond-shaped asterism is called Job's Coffin.",
+    history:"In Greek myth, the dolphin saved the poet Arion from drowning by carrying him to shore. Also associated with the story of thesea god Poseidon. One of the smallest constellations, visible in late summer.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-0.2);ctx.quadraticCurveTo(0.15,-0.1,0.05,0.1);ctx.quadraticCurveTo(0,0.2,-0.05,0.1);ctx.quadraticCurveTo(-0.15,-0.1,0,-0.2);ctx.moveTo(0,-0.2);ctx.lineTo(0.05,-0.3);ctx.stroke();ctx.restore()}},
+  {name:"Aquila",stars:[[0.5,0.15],[0.4,0.35],[0.6,0.35],[0.35,0.5],[0.65,0.5],[0.5,0.6]],lines:[[0,1],[0,2],[1,3],[2,4],[1,5],[2,5]],
+    desc:"The Eagle — the central star Altair is bright and fast-spinning. One of the three stars of the Summer Triangle (with Vega and Deneb).",
+    history:"Aquila was the eagle that carried Zeus' thunderbolts. Altair is one of the nearest bright stars at 16.7 light-years and spins so fast it's oblate. The Summer Triangle is a prominent asterism visible in northern summer.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-0.25);ctx.lineTo(0,-0.05);ctx.moveTo(-0.2,0);ctx.lineTo(0,-0.05);ctx.lineTo(0.2,0);ctx.moveTo(0,-0.05);ctx.lineTo(0,0.15);ctx.moveTo(-0.1,0.1);ctx.lineTo(0,0.15);ctx.lineTo(0.1,0.1);ctx.stroke();ctx.restore()}},
+  {name:"Corvus",stars:[[0.4,0.25],[0.6,0.25],[0.6,0.5],[0.4,0.5]],lines:[[0,1],[1,2],[2,3],[3,0],[0,2]],
+    desc:"The Crow — a small quadrilateral constellation near the back of Hydra. The four stars form a distinctive box shape.",
+    history:"In Greek myth, Apollo sent a crow to spy on his lover Coronis, but the crow brought back bad news. Apollo cursed the crow to be black forever. The constellation was known to the ancient Egyptians as the 'scepter'.",
+    overlay:function(cx,cy,s,ctx){ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-0.1,-0.15);ctx.lineTo(0.1,-0.15);ctx.lineTo(0.1,0.15);ctx.lineTo(-0.1,0.15);ctx.closePath();ctx.moveTo(-0.1,-0.15);ctx.lineTo(-0.2,-0.2);ctx.moveTo(-0.1,-0.15);ctx.lineTo(-0.2,-0.1);ctx.stroke();ctx.restore()}}
 ];
 
 let bgStars=[];for(let i=0;i<300;i++)bgStars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.5+0.3,twinkle:Math.random()*Math.PI*2});
 
 let state='menu',mode='edu';
-let eduIdx=0,trainList=[],trainIdx=0,trainScore=0,trainTotal=0;
-let clickedStars=[],wrongFlash=0;
+let eduIdx=0,trainList=[],trainIdx=0,trainCorrect=new Set(),wrongFlash=0,showInfo=false;
 
-function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function getStarPos(s){return{x:s[0]*W,y:s[1]*H}}
 
 function drawBg(t){ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,W,H);for(const s of bgStars){const alpha=0.4+0.3*Math.sin(t*0.001+s.twinkle);ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(200,200,220,${alpha})`;ctx.fill()}}
 
-function drawConstellation(c,t,showName){
+function drawConstellation(c,t,showName,showOverlay){
   const stars=c.stars.map(getStarPos);
   ctx.lineWidth=2;
   for(const[a,b]of c.lines){ctx.beginPath();ctx.moveTo(stars[a].x,stars[a].y);ctx.lineTo(stars[b].x,stars[b].y);ctx.strokeStyle='rgba(0,229,255,0.25)';ctx.stroke()}
   for(let i=0;i<stars.length;i++){const s=stars[i];const pulse=Math.sin(t*0.003+i)*0.3+0.7;
     ctx.beginPath();ctx.arc(s.x,s.y,5,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${pulse})`;ctx.shadowBlur=8;ctx.shadowColor='rgba(255,255,255,0.5)';ctx.fill();ctx.shadowBlur=0}
-  if(showName){ctx.save();ctx.font='bold 20px "Courier New",monospace';ctx.textAlign='center';ctx.fillStyle='#00e5ff';ctx.shadowBlur=12;ctx.shadowColor='#00e5ff';ctx.fillText(c.name.toUpperCase(),W/2,H-80);ctx.restore()}
+  if(showOverlay&&c.overlay){
+    const cx=W/2,cy=H/2,s=Math.min(W,H)*0.3;
+    ctx.globalAlpha=0.3;c.overlay(cx,cy,s,ctx);ctx.globalAlpha=1;
+  }
+  if(showName){ctx.save();ctx.font='bold 18px "Courier New",monospace';ctx.textAlign='center';ctx.fillStyle='#00e5ff';ctx.shadowBlur=12;ctx.shadowColor='#00e5ff';ctx.fillText(c.name.toUpperCase(),W/2,H-100);ctx.restore()}
 }
 
 function drawQuizConstellation(c,t){
-  const stars=c.stars.map(getStarPos);
-  ctx.lineWidth=2;
-  for(const[a,b]of c.lines){ctx.beginPath();ctx.moveTo(stars[a].x,stars[b].y);ctx.lineTo(stars[b].x,stars[b].y);ctx.strokeStyle='rgba(0,229,255,0.25)';ctx.stroke()}
+  const stars=c.stars.map(getStarPos);ctx.lineWidth=2;
+  for(const[a,b]of c.lines){ctx.beginPath();ctx.moveTo(stars[a].x,stars[a].y);ctx.lineTo(stars[b].x,stars[b].y);ctx.strokeStyle='rgba(0,229,255,0.25)';ctx.stroke()}
   for(let i=0;i<stars.length;i++){const s=stars[i];const pulse=Math.sin(t*0.003+i)*0.3+0.7;
     ctx.beginPath();ctx.arc(s.x,s.y,5,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${pulse})`;ctx.shadowBlur=8;ctx.shadowColor='rgba(255,255,255,0.5)';ctx.fill();ctx.shadowBlur=0}
 }
 
+function showInfoPanel(c){
+  const el=document.getElementById('info-panel');
+  el.innerHTML='<h3>'+c.name.toUpperCase()+'</h3><div class="desc">'+c.desc+'</div><div class="hist">'+c.history+'</div>';
+  el.classList.remove('hidden');showInfo=true;
+}
+function hideInfoPanel(){document.getElementById('info-panel').classList.add('hidden');showInfo=false}
+
 function flashWrong(){wrongFlash=1;setTimeout(()=>wrongFlash=0,300)}
-function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className='show '+type;setTimeout(()=>el.className='',1500)}
+function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className='show '+type;setTimeout(()=>el.className='',2000)}
 
 function gameLoop(t){
   requestAnimationFrame(gameLoop);drawBg(t);
-  if(state==='edu'){drawConstellation(CONSTELLATIONS[eduIdx],t,true)}
+  if(state==='edu'){drawConstellation(CONSTELLATIONS[eduIdx],t,true,true)}
   else if(state==='quiz'){
     if(trainIdx<trainList.length){drawQuizConstellation(trainList[trainIdx],t);
       if(wrongFlash){ctx.fillStyle='rgba(255,68,68,0.1)';ctx.fillRect(0,0,W,H)}}
   }
   else if(state==='study'){
-    if(trainIdx<trainList.length){drawConstellation(trainList[trainIdx],t,true)}
+    if(trainIdx<trainList.length){drawConstellation(trainList[trainIdx],t,true,true)}
   }
 }
 
@@ -157,9 +229,10 @@ document.getElementById('edu-btn').addEventListener('click',()=>{
 document.getElementById('edu-start').addEventListener('click',()=>{
   state='edu';eduIdx=0;document.getElementById('start-screen').classList.add('hidden');
   document.getElementById('const-name').textContent=CONSTELLATIONS[eduIdx].name.toUpperCase()+' ('+(eduIdx+1)+'/'+CONSTELLATIONS.length+')';
-  document.getElementById('browse-nav').classList.remove('hidden')});
-document.getElementById('prev-btn').addEventListener('click',()=>{eduIdx=(eduIdx-1+CONSTELLATIONS.length)%CONSTELLATIONS.length;document.getElementById('const-name').textContent=CONSTELLATIONS[eduIdx].name.toUpperCase()+' ('+(eduIdx+1)+'/'+CONSTELLATIONS.length+')'});
-document.getElementById('next-btn').addEventListener('click',()=>{eduIdx=(eduIdx+1)%CONSTELLATIONS.length;document.getElementById('const-name').textContent=CONSTELLATIONS[eduIdx].name.toUpperCase()+' ('+(eduIdx+1)+'/'+CONSTELLATIONS.length+')'});
+  document.getElementById('browse-nav').classList.remove('hidden');showInfoPanel(CONSTELLATIONS[eduIdx])});
+document.getElementById('prev-btn').addEventListener('click',()=>{eduIdx=(eduIdx-1+CONSTELLATIONS.length)%CONSTELLATIONS.length;document.getElementById('const-name').textContent=CONSTELLATIONS[eduIdx].name.toUpperCase()+' ('+(eduIdx+1)+'/'+CONSTELLATIONS.length+')';if(showInfo)showInfoPanel(CONSTELLATIONS[eduIdx])});
+document.getElementById('next-btn').addEventListener('click',()=>{eduIdx=(eduIdx+1)%CONSTELLATIONS.length;document.getElementById('const-name').textContent=CONSTELLATIONS[eduIdx].name.toUpperCase()+' ('+(eduIdx+1)+'/'+CONSTELLATIONS.length+')';if(showInfo)showInfoPanel(CONSTELLATIONS[eduIdx])});
+document.getElementById('info-toggle-btn').addEventListener('click',()=>{if(showInfo)hideInfoPanel();else if(state==='edu')showInfoPanel(CONSTELLATIONS[eduIdx]);else if(state==='study'&&trainIdx<trainList.length)showInfoPanel(trainList[trainIdx])});
 
 // Training mode
 document.getElementById('train-btn').addEventListener('click',()=>{
@@ -167,41 +240,64 @@ document.getElementById('train-btn').addEventListener('click',()=>{
   document.getElementById('train-btn').classList.add('active');document.getElementById('edu-btn').classList.remove('active')});
 document.getElementById('train-start').addEventListener('click',()=>{
   const count=Math.min(parseInt(document.getElementById('train-count').value)||5,CONSTELLATIONS.length);
-  trainList=shuffle([...CONSTELLATIONS]).slice(0,count);trainIdx=0;trainScore=0;trainTotal=trainList.length;
+  trainList=shuffle(CONSTELLATIONS).slice(0,count);trainIdx=0;trainCorrect=new Set();
   state='study';document.getElementById('start-screen').classList.add('hidden');
   document.getElementById('const-name').textContent='Study ('+'1/'+trainList.length+')';
   document.getElementById('browse-nav').classList.remove('hidden');
+  document.getElementById('info-toggle-btn').classList.remove('hidden');
+  showInfoPanel(trainList[0]);
   document.getElementById('next-btn').onclick=function(){
     trainIdx++;
     if(trainIdx>=trainList.length){
-      // Switch to quiz phase
-      trainIdx=0;state='quiz';clickedStars=[];
+      trainIdx=0;state='quiz';trainCorrect=new Set();
       document.getElementById('browse-nav').classList.add('hidden');
       document.getElementById('quiz-input').classList.remove('hidden');
       document.getElementById('quiz-field').value='';document.getElementById('quiz-field').focus();
       document.getElementById('const-name').textContent='QUIZ — type the name';
       document.getElementById('progress').textContent='1 / '+trainList.length;
-      return;
+      hideInfoPanel();return;
     }
-    document.getElementById('const-name').textContent='Study ('+(trainIdx+1)+'/'+trainList.length+')'};
-  document.getElementById('prev-btn').onclick=function(){if(trainIdx>0){trainIdx--;document.getElementById('const-name').textContent='Study ('+(trainIdx+1)+'/'+trainList.length+')'}};
+    document.getElementById('const-name').textContent='Study ('+(trainIdx+1)+'/'+trainList.length+')';
+    showInfoPanel(trainList[trainIdx])};
+  document.getElementById('prev-btn').onclick=function(){if(trainIdx>0){trainIdx--;document.getElementById('const-name').textContent='Study ('+(trainIdx+1)+'/'+trainList.length+')';showInfoPanel(trainList[trainIdx])}};
 });
 
-// Quiz phase
+// Quiz phase — repeat until 100%
 document.getElementById('quiz-field').addEventListener('keydown',(e)=>{
-  if(state!=='quiz'||trainIdx>=trainList.length)return;
+  if(state!=='quiz')return;
   if(e.key==='Enter'){
     const val=document.getElementById('quiz-field').value.trim().toLowerCase();
     const expected=trainList[trainIdx].name.toLowerCase();
-    if(val===expected){trainScore++;showMsg('✓ '+trainList[trainIdx].name,'correct')}
-    else{showMsg('✗ It was: '+trainList[trainIdx].name,'wrong')}
+    if(val===expected){
+      trainCorrect.add(trainIdx);
+      showMsg('✓ '+trainList[trainIdx].name,'correct');
+    }else{
+      trainCorrect.delete(trainIdx);
+      showMsg('✗ It was: '+trainList[trainIdx].name,'wrong');
+    }
     trainIdx++;document.getElementById('quiz-field').value='';
     if(trainIdx>=trainList.length){
-      state='menu';
-      document.getElementById('quiz-input').classList.add('hidden');
-      document.getElementById('result-screen').classList.remove('hidden');
-      document.getElementById('result-title').textContent='QUIZ COMPLETE';
-      document.getElementById('result-text').textContent='Score: '+trainScore+' / '+trainTotal+' ('+Math.round(trainScore*100/trainTotal)+'%)';
+      if(trainCorrect.size===trainList.length){
+        // 100% — go to results then menu
+        state='menu';
+        document.getElementById('quiz-input').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('result-title').textContent='🎉 PERFECT!';
+        document.getElementById('result-text').textContent='You got all '+trainList.length+' constellations correct!';
+      }else{
+        // Not 100% — shuffle and repeat the ones they got wrong
+        const missed=[];
+        for(let i=0;i<trainList.length;i++)if(!trainCorrect.has(i))missed.push(i);
+        trainList=shuffle(missed.map(i=>trainList[i]));
+        trainIdx=0;
+        state='study';
+        document.getElementById('quiz-input').classList.add('hidden');
+        document.getElementById('browse-nav').classList.remove('hidden');
+        document.getElementById('const-name').textContent='Review — '+trainList.length+' remaining';
+        document.getElementById('progress').textContent='';
+        showMsg('Got '+(missed.length===0?'all':(trainList.length-missed.length)+'/'+trainList.length)+' — reviewing misses','info');
+        showInfoPanel(trainList[0]);
+      }
     }else{
       document.getElementById('const-name').textContent='QUIZ — type the name';
       document.getElementById('progress').textContent=(trainIdx+1)+' / '+trainList.length;
@@ -216,8 +312,7 @@ document.getElementById('back-btn').addEventListener('click',()=>{
   document.getElementById('quiz-input').classList.add('hidden');
   document.getElementById('progress').textContent='';
   document.getElementById('const-name').textContent='';
-  document.getElementById('timer').textContent='';
-  state='menu';
+  hideInfoPanel();state='menu';
 });
 
 requestAnimationFrame(gameLoop);

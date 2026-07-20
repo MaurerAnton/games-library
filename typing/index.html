@@ -2,47 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Synthwave Typing</title>
 <style>
-:root { --bg:#0a0a0f; --green:#00ff88; --purple:#aa44ff; --cyan:#00e5ff; --red:#ff4444; --pink:#ff00aa; }
+:root{--bg:#0a0a0f;--green:#00ff88;--purple:#aa44ff;--cyan:#00e5ff;--red:#ff4444;--pink:#ff00aa}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);overflow:hidden;font-family:'Courier New',monospace}
+body{background:var(--bg);overflow:hidden;font-family:'Courier New',monospace;-webkit-user-select:none;user-select:none}
 canvas{display:block}
-#nav{position:fixed;top:0;left:0;right:0;height:36px;z-index:100;background:rgba(10,10,15,0.92);border-bottom:1px solid #2a2a3a;display:flex;align-items:center;padding:0 16px;gap:4px;font-size:11px;letter-spacing:1px}
-#nav a{color:#666680;text-decoration:none;padding:6px 10px;border-radius:3px;transition:all 0.2s;font-family:'Courier New',monospace}
-#nav a:hover{color:#00e5ff;background:rgba(0,229,255,0.08)}
-#nav a.active{color:#ff00aa;background:rgba(255,0,170,0.1)}
-#nav .label{color:#aa44ff;margin-right:8px;font-weight:bold}
-#ui{position:fixed;top:36px;left:0;right:0;display:flex;justify-content:space-between;padding:12px 24px;pointer-events:none;z-index:10}
-#score,#lives{font-size:20px;letter-spacing:2px}
+#ui{position:fixed;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:4px 12px;pointer-events:none;z-index:10}
+#score,#lives{font-size:16px;letter-spacing:2px}
 #score{color:var(--green);text-shadow:0 0 10px var(--green)}
 #lives{color:var(--red);text-shadow:0 0 10px var(--red)}
-#combo{position:fixed;top:80px;left:24px;color:var(--purple);font-size:14px;letter-spacing:2px;text-shadow:0 0 8px var(--purple);pointer-events:none;z-index:10}
-#input-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10}
-#typed{background:rgba(10,10,15,0.85);border:1px solid var(--cyan);color:var(--cyan);font-family:'Courier New',monospace;font-size:22px;padding:10px 20px;width:400px;text-align:center;text-shadow:0 0 8px var(--cyan);outline:none;letter-spacing:2px}
-#start-screen,#game-over{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:rgba(10,10,15,0.95);padding-top:36px}
-#start-screen h1,#game-over h1{font-size:42px;letter-spacing:6px;margin-bottom:8px;color:var(--pink);text-shadow:0 0 20px var(--pink),0 0 40px var(--pink)}
-#start-screen p{color:#666;letter-spacing:2px;margin-bottom:24px;font-size:14px}
-.mode-btn{background:transparent;border:1px solid var(--purple);color:var(--purple);font-family:'Courier New',monospace;font-size:16px;padding:10px 28px;margin:6px;cursor:pointer;letter-spacing:2px;transition:all 0.2s}
-.mode-btn:hover{background:var(--purple);color:var(--bg);box-shadow:0 0 15px rgba(170,68,255,0.4)}
-#custom-area{display:none;margin-top:16px}
-#custom-text{width:400px;height:100px;background:rgba(10,10,15,0.9);border:1px solid var(--purple);color:var(--green);font-family:'Courier New',monospace;font-size:14px;padding:10px;resize:none;outline:none}
+#combo{position:fixed;top:32px;left:12px;color:var(--purple);font-size:12px;letter-spacing:2px;text-shadow:0 0 8px var(--purple);pointer-events:none;z-index:10}
+#input-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;width:90%;max-width:400px}
+#typed{width:100%;background:rgba(10,10,15,0.85);border:1px solid var(--cyan);color:var(--cyan);font-family:'Courier New',monospace;font-size:20px;padding:10px;text-align:center;text-shadow:0 0 8px var(--cyan);outline:none;letter-spacing:2px}
+#start-screen,#game-over{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:rgba(10,10,15,0.95);padding:16px}
+#start-screen h1,#game-over h1{font-size:clamp(24px,8vw,42px);letter-spacing:4px;margin-bottom:8px;color:var(--pink);text-shadow:0 0 20px var(--pink),0 0 40px var(--pink);text-align:center}
+#start-screen p{color:#666;letter-spacing:2px;margin-bottom:20px;font-size:13px;text-align:center}
+.mode-btn{background:transparent;border:1px solid var(--purple);color:var(--purple);font-family:'Courier New',monospace;font-size:14px;padding:10px 24px;margin:4px;cursor:pointer;letter-spacing:2px;transition:all 0.2s}
+.mode-btn:hover,.mode-btn:active{background:var(--purple);color:var(--bg);box-shadow:0 0 15px rgba(170,68,255,0.4)}
+#custom-area{display:none;margin-top:12px;width:100%;max-width:400px}
+#custom-text{width:100%;height:80px;background:rgba(10,10,15,0.9);border:1px solid var(--purple);color:var(--green);font-family:'Courier New',monospace;font-size:13px;padding:8px;resize:none;outline:none}
 #game-over h1{color:var(--green);text-shadow:0 0 20px var(--green)}
-#final-score{font-size:28px;color:var(--cyan);text-shadow:0 0 10px var(--cyan);margin-bottom:24px}
+#final-score{font-size:24px;color:var(--cyan);text-shadow:0 0 10px var(--cyan);margin-bottom:20px}
 .hidden{display:none!important}
 #pause-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:25;background:rgba(10,10,15,0.9)}
 #pause-overlay.show{display:flex}
-#pause-overlay span{font-size:32px;color:var(--purple);letter-spacing:4px;text-shadow:0 0 15px var(--purple)}
+#pause-overlay span{font-size:28px;color:var(--purple);letter-spacing:4px;text-shadow:0 0 15px var(--purple)}
 </style>
 </head>
 <body>
-<nav id="nav">
-  <span class="label">GAMES</span>
-  <a href="../typing/" class="active">Typing</a>
-  <a href="../constellations/">Constellations</a>
-  <a href="../glitch/">Glitch</a>
-</nav>
 <canvas id="c"></canvas>
 <div id="ui"><div id="score">SCORE: 0</div><div id="lives"></div></div>
 <div id="combo"></div>
@@ -59,21 +48,13 @@ canvas{display:block}
 <div id="pause-overlay"><span>PAUSED</span></div>
 <script>
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d'),typedInput=document.getElementById('typed'),scoreEl=document.getElementById('score'),livesEl=document.getElementById('lives'),comboEl=document.getElementById('combo'),startScreen=document.getElementById('start-screen'),gameOverScreen=document.getElementById('game-over'),finalScoreEl=document.getElementById('final-score'),pauseOverlay=document.getElementById('pause-overlay'),customArea=document.getElementById('custom-area');
-let W,H;const NAV_H=36;
-function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight-NAV_H;canvas.style.marginTop=NAV_H+'px'}
+let W,H;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
 resize();addEventListener('resize',resize);
 
-// Audio
 const AudioCtx=window.AudioContext||window.webkitAudioContext;let audioCtx;
 function initAudio(){if(!audioCtx)audioCtx=new AudioCtx()}
-function playTone(freq,dur,type,vol){
-  if(!audioCtx)return;
-  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type=type||'square';o.frequency.setValueAtTime(freq,audioCtx.currentTime);
-  g.gain.setValueAtTime(vol||0.08,audioCtx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
-  o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
-}
+function playTone(freq,dur,type,vol){if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type||'square';o.frequency.setValueAtTime(freq,audioCtx.currentTime);g.gain.setValueAtTime(vol||0.08,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur)}
 function sndDestroy(){playTone(880,0.1,'square',0.06);setTimeout(()=>playTone(1320,0.08,'square',0.04),50)}
 function sndMiss(){playTone(150,0.3,'sawtooth',0.08)}
 function sndGameOver(){playTone(220,0.4,'sawtooth',0.1);setTimeout(()=>playTone(165,0.5,'sawtooth',0.08),200)}
@@ -85,13 +66,9 @@ let state='start',mode='words',customWords=[],score=0,lives=3,combo=0,words=[],s
 
 function getWordList(){if(mode==='custom'&&customWords.length>0)return customWords;return mode==='code'?CODE_WORDS:WORDS}
 function spawnWord(){const list=getWordList(),text=list[Math.floor(Math.random()*list.length)],tw=ctx.measureText(text).width;words.push({text,x:Math.random()*(W-tw-40)+20,y:-20,speed:baseSpeed+Math.random()*0.3,chars:0})}
-
 function drawGrid(){ctx.save();const horizon=H*0.4;ctx.strokeStyle='rgba(170,68,255,0.15)';ctx.lineWidth=1;for(let i=0;i<20;i++){const y=horizon+i*i*2.5;if(y>H)break;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}const cx=W/2;for(let i=-10;i<=10;i++){ctx.beginPath();ctx.moveTo(cx+i*30,horizon);ctx.lineTo(cx+i*200,H);ctx.stroke()}ctx.restore()}
-
-function drawWord(w){ctx.save();const full=w.text,typed=full.substring(0,w.chars),remaining=full.substring(w.chars);ctx.font='20px "Courier New",monospace';const typedWidth=ctx.measureText(typed).width;if(w.chars===0){ctx.shadowBlur=12;ctx.shadowColor='#00ff88';ctx.fillStyle='#00ff88';ctx.fillText(full,w.x,w.y)}else{ctx.shadowBlur=10;ctx.shadowColor='#00e5ff';ctx.fillStyle='#00e5ff';ctx.fillText(typed,w.x,w.y);ctx.shadowColor='#00ff88';ctx.fillStyle='#00ff88';ctx.fillText(remaining,w.x+typedWidth,w.y)}ctx.restore()}
-
+function drawWord(w){ctx.save();const full=w.text,typed=full.substring(0,w.chars),remaining=full.substring(w.chars);ctx.font='18px "Courier New",monospace';const typedWidth=ctx.measureText(typed).width;if(w.chars===0){ctx.shadowBlur=12;ctx.shadowColor='#00ff88';ctx.fillStyle='#00ff88';ctx.fillText(full,w.x,w.y)}else{ctx.shadowBlur=10;ctx.shadowColor='#00e5ff';ctx.fillStyle='#00e5ff';ctx.fillText(typed,w.x,w.y);ctx.shadowColor='#00ff88';ctx.fillStyle='#00ff88';ctx.fillText(remaining,w.x+typedWidth,w.y)}ctx.restore()}
 function drawLives(){let s='';for(let i=0;i<lives;i++)s+='♥ ';livesEl.textContent=s}
-
 function findTarget(){let best=null,bestY=-Infinity;for(const w of words){if(w.chars===0&&w.y>bestY){best=w;bestY=w.y}}if(!best)for(const w of words)if(w.y>bestY){best=w;bestY=w.y}return best}
 
 function gameLoop(timestamp){
@@ -101,12 +78,11 @@ function gameLoop(timestamp){
   const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#0a0a0f');grad.addColorStop(0.4,'#1a0a2e');grad.addColorStop(1,'#0a0a0f');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
   drawGrid();
   spawnTimer++;if(spawnTimer>=spawnInterval){spawnTimer=0;spawnWord()}
-  // Gentler difficulty scaling
   baseSpeed=0.5+score*0.001;
   if(spawnInterval>60)spawnInterval=Math.max(60,150-Math.floor(score/8));
   const target=findTarget();
   for(let i=words.length-1;i>=0;i--){const w=words[i];w.y+=w.speed*(dt/16);drawWord(w);
-    if(w===target){ctx.save();ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.strokeRect(w.x-4,w.y-18,ctx.measureText(w.text).width+8,24);ctx.restore()}
+    if(w===target){ctx.save();ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.strokeRect(w.x-4,w.y-16,ctx.measureText(w.text).width+8,22);ctx.restore()}
     if(w.y>H+20){words.splice(i,1);if(w.chars===0){lives--;combo=0;drawLives();sndMiss();if(lives<=0){state='gameover';finalScoreEl.textContent='SCORE: '+score;gameOverScreen.classList.remove('hidden');sndGameOver();return}}}
   }
   scoreEl.textContent='SCORE: '+score;comboEl.textContent=combo>1?'COMBO x'+combo:''

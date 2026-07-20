@@ -2,88 +2,92 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Glitch Art Generator</title>
 <style>
 :root{--bg:#0a0a0f;--bg2:#12121a;--text:#c8c8d8;--grey:#666680;--border:#2a2a3a;--green:#00ff88;--cyan:#00e5ff;--purple:#aa44ff;--red:#ff4444;--pink:#ff00aa}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;padding-top:36px}
-#nav{position:fixed;top:0;left:0;right:0;height:36px;z-index:100;background:rgba(10,10,15,0.92);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:4px;font-size:11px;letter-spacing:1px}
-#nav a{color:var(--grey);text-decoration:none;padding:6px 10px;border-radius:3px;transition:all 0.2s;font-family:'Courier New',monospace}
-#nav a:hover{color:var(--cyan);background:rgba(0,229,255,0.08)}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100dvh;padding-top:36px}
+#nav{position:fixed;top:0;left:0;right:0;height:36px;z-index:100;background:rgba(10,10,15,0.92);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:4px;font-size:11px;letter-spacing:1px}
+#nav a{color:var(--grey);text-decoration:none;padding:6px 8px;border-radius:3px;transition:all 0.2s;font-family:'Courier New',monospace}
+#nav a:hover,#nav a:active{color:var(--cyan);background:rgba(0,229,255,0.08)}
 #nav a.active{color:var(--pink);background:rgba(255,0,170,0.1)}
-#nav .label{color:var(--purple);margin-right:8px;font-weight:bold}
-#app{display:flex;min-height:calc(100vh - 36px)}
-#sidebar{width:300px;background:var(--bg2);border-right:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
-#main{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;position:relative}
-h1{font-size:14px;letter-spacing:3px;color:var(--pink)}
-.effect-group{border:1px solid var(--border);border-radius:4px;padding:10px}
-.effect-label{font-size:11px;color:var(--grey);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+#nav .label{color:var(--purple);margin-right:4px;font-weight:bold}
+#app{display:flex;flex-direction:column;min-height:calc(100dvh - 36px)}
+#sidebar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:45dvh}
+#main{flex:1;display:flex;align-items:center;justify-content:center;padding:12px;position:relative;min-height:200px}
+h1{font-size:13px;letter-spacing:3px;color:var(--pink)}
+.effect-group{border:1px solid var(--border);border-radius:4px;padding:8px}
+.effect-label{font-size:10px;color:var(--grey);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-bottom:2px}
 .effect-label input[type="checkbox"]{accent-color:var(--pink);width:auto}
-.effect-desc{font-size:10px;color:var(--grey);margin-bottom:6px;line-height:1.4;opacity:0.7}
+.effect-desc{font-size:9px;color:var(--grey);margin-bottom:4px;line-height:1.3;opacity:0.7}
 .effect-group input[type="range"]{width:100%;accent-color:var(--pink);height:4px}
-.btn{background:transparent;border:1px solid var(--border);color:var(--text);font-family:'Courier New',monospace;font-size:12px;padding:8px 16px;cursor:pointer;letter-spacing:1px;transition:all 0.2s}
-.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn{background:transparent;border:1px solid var(--border);color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:7px 12px;cursor:pointer;letter-spacing:1px;transition:all 0.2s}
+.btn:hover,.btn:active{border-color:var(--cyan);color:var(--cyan)}
 .btn.primary{background:var(--pink);color:var(--bg);border-color:var(--pink)}
-.btn-row{display:flex;gap:8px}.btn-row .btn{flex:1}
-#drop-zone{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;border:2px dashed var(--border);margin:20px;border-radius:8px;transition:all 0.2s}
+.btn-row{display:flex;gap:6px}.btn-row .btn{flex:1}
+#drop-zone{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;border:2px dashed var(--border);margin:12px;border-radius:8px;transition:all 0.2s}
 #drop-zone.dragover{border-color:var(--pink);background:rgba(255,0,170,0.05)}
-#drop-zone p{color:var(--grey);letter-spacing:2px;font-size:14px;margin-bottom:12px}
-#drop-zone .hint{font-size:11px;color:var(--grey);opacity:0.6;margin-top:8px}
+#drop-zone p{color:var(--grey);letter-spacing:2px;font-size:13px;margin-bottom:8px}
+#drop-zone .hint{font-size:10px;color:var(--grey);opacity:0.6;margin-top:6px}
 #drop-zone.hidden{display:none}
-#canvas{max-width:100%;max-height:100%;border:1px solid var(--border)}
+#canvas{max-width:100%;max-height:100%;border:1px solid var(--border);display:none}
+#canvas.visible{display:block}
 #upload-input{display:none}
+@media(min-width:769px){
+  #app{flex-direction:row;min-height:calc(100dvh - 36px)}
+  #sidebar{width:280px;border-bottom:none;border-right:1px solid var(--border);max-height:none}
+  #main{min-height:auto}
+}
 </style>
 </head>
 <body>
 <nav id="nav">
   <span class="label">GAMES</span>
-  <a href="../typing/">Typing</a>
   <a href="../constellations/">Constellations</a>
   <a href="../glitch/" class="active">Glitch</a>
 </nav>
 <div id="app">
   <div id="sidebar">
     <h1>GLITCH ART</h1>
-    <p style="font-size:11px;color:var(--grey);line-height:1.4">Upload an image, apply effects, export as PNG.</p>
     <div class="effect-group">
       <div class="effect-label"><input type="checkbox" id="fx-rgb"> RGB SHIFT</div>
-      <div class="effect-desc">Offsets red and blue color channels horizontally, creating a chromatic aberration look.</div>
+      <div class="effect-desc">Offsets red/blue channels — chromatic aberration look.</div>
       <input type="range" id="int-rgb" min="0" max="100" value="30">
     </div>
     <div class="effect-group">
       <div class="effect-label"><input type="checkbox" id="fx-scan"> SCANLINES</div>
-      <div class="effect-desc">Adds horizontal dark lines like an old CRT monitor or VHS tape.</div>
+      <div class="effect-desc">Horizontal dark lines — old CRT monitor / VHS look.</div>
       <input type="range" id="int-scan" min="0" max="100" value="50">
     </div>
     <div class="effect-group">
       <div class="effect-label"><input type="checkbox" id="fx-mosh"> DATAMOSH</div>
-      <div class="effect-desc">Randomly displaces blocks of pixels, like a corrupted video file.</div>
+      <div class="effect-desc">Random block displacement — corrupted video file.</div>
       <input type="range" id="int-mosh" min="0" max="100" value="40">
     </div>
     <div class="effect-group">
       <div class="effect-label"><input type="checkbox" id="fx-sort"> PIXEL SORT</div>
-      <div class="effect-desc">Sorts pixels by brightness in each row, creating a smeared/melted effect.</div>
+      <div class="effect-desc">Sorts pixels by brightness — smeared/melted effect.</div>
       <input type="range" id="int-sort" min="0" max="100" value="50">
     </div>
     <div class="effect-group">
       <div class="effect-label"><input type="checkbox" id="fx-noise"> NOISE</div>
-      <div class="effect-desc">Adds random colored pixels for a grainy, static TV look.</div>
+      <div class="effect-desc">Random colored pixels — grainy static TV look.</div>
       <input type="range" id="int-noise" min="0" max="100" value="20">
     </div>
     <div class="btn-row">
       <button class="btn" id="randomize-btn">🎲 RANDOM</button>
       <button class="btn" id="reset-btn">↺ RESET</button>
     </div>
-    <button class="btn primary" id="download-btn">💾 DOWNLOAD PNG</button>
-    <button class="btn" id="upload-btn">📁 UPLOAD IMAGE</button>
+    <button class="btn primary" id="download-btn" style="width:100%">💾 DOWNLOAD PNG</button>
+    <button class="btn" id="upload-btn" style="width:100%">📁 UPLOAD IMAGE</button>
     <input type="file" id="upload-input" accept="image/*">
   </div>
   <div id="main">
     <div id="drop-zone">
       <p>DROP IMAGE HERE</p>
-      <button class="btn" id="drop-upload-btn">OR CLICK TO UPLOAD</button>
-      <div class="hint">Supports JPG, PNG, GIF, WebP</div>
+      <button class="btn" id="drop-upload-btn">OR TAP TO UPLOAD</button>
+      <div class="hint">JPG, PNG, GIF, WebP</div>
     </div>
     <canvas id="canvas"></canvas>
   </div>
@@ -94,33 +98,65 @@ let originalImage=null;
 
 const effects={rgb:{el:'fx-rgb',int:'int-rgb'},scan:{el:'fx-scan',int:'int-scan'},mosh:{el:'fx-mosh',int:'int-mosh'},sort:{el:'fx-sort',int:'int-sort'},noise:{el:'fx-noise',int:'int-noise'}};
 
-function loadImage(file){const reader=new FileReader();reader.onload=(e)=>{const img=new Image();img.onload=()=>{originalImage=img;const maxW=Math.min(window.innerWidth-340,800),maxH=window.innerHeight-80;let w=img.width,h=img.height;if(w>maxW){h*=maxW/w;w=maxW}if(h>maxH){w*=maxH/h;h=maxH}canvas.width=w;canvas.height=h;ctx.drawImage(img,0,0,w,h);dropZone.classList.add('hidden')};img.src=e.target.result};reader.readAsDataURL(file)}
+function loadImage(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      originalImage=img;
+      const maxW=window.innerWidth-24,maxH=window.innerHeight-200;
+      let w=img.width,h=img.height;
+      if(w>maxW){h*=maxW/w;w=maxW}
+      if(h>maxH){w*=maxH/h;h=maxH}
+      canvas.width=Math.max(1,Math.floor(w));
+      canvas.height=Math.max(1,Math.floor(h));
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      dropZone.classList.add('hidden');
+      canvas.classList.add('visible');
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
-function applyEffects(){if(!originalImage)return;ctx.drawImage(originalImage,0,0,canvas.width,canvas.height);const src=ctx.getImageData(0,0,canvas.width,canvas.height);
+function applyEffects(){
+  if(!originalImage)return;
+  ctx.drawImage(originalImage,0,0,canvas.width,canvas.height);
+  const src=ctx.getImageData(0,0,canvas.width,canvas.height);
   if(document.getElementById('fx-sort').checked)pixelSort(src,parseInt(document.getElementById('int-sort').value));
   if(document.getElementById('fx-mosh').checked)datamosh(src,parseInt(document.getElementById('int-mosh').value));
   if(document.getElementById('fx-noise').checked)addNoise(src,parseInt(document.getElementById('int-noise').value));
   if(document.getElementById('fx-rgb').checked)rgbShift(src,parseInt(document.getElementById('int-rgb').value));
   if(document.getElementById('fx-scan').checked)scanlines(src,parseInt(document.getElementById('int-scan').value));
-  ctx.putImageData(src,0,0)}
+  ctx.putImageData(src,0,0);
+}
 
 function rgbShift(imgData,intensity){const d=imgData.data,shift=Math.floor(intensity*0.5),copy=new Uint8ClampedArray(d);for(let i=0;i<d.length;i+=4){const x=(i/4)%imgData.width;if(x+shift<imgData.width)d[i]=copy[i+shift*4];if(x-shift>=0)d[i+2]=copy[i-shift*4+2]}}
 function scanlines(imgData,intensity){const d=imgData.data,gap=Math.max(2,Math.floor(10-intensity*0.08)),alpha=intensity*0.01;for(let i=0;i<d.length;i+=4){const y=Math.floor((i/4)/imgData.width);if(y%gap===0){d[i]*=(1-alpha);d[i+1]*=(1-alpha);d[i+2]*=(1-alpha)}}}
-function datamosh(imgData,intensity){const d=imgData.data,w=imgData.width,h=imgData.height,blocks=Math.floor(intensity*0.3)+1,copy=new Uint8ClampedArray(d);for(let b=0;b<blocks;b++){const bw=Math.floor(Math.random()*60+20),bh=Math.floor(Math.random()*40+10),sx=Math.floor(Math.random()*(w-bw)),sy=Math.floor(Math.random()*(h-bh)),dx=Math.floor(Math.random()*(w-bw)),dy=Math.floor(Math.random()*(h-bh));for(let y=0;y<bh;y++)for(let x=0;x<bw;x++){const si=((sy+y)*w+(sx+x))*4,di=((dy+y)*w+(dx+x))*4;d[di]=copy[si];d[di+1]=copy[si+1];d[di+2]=copy[si+2]}}}
-function pixelSort(imgData,intensity){const d=imgData.data,w=imgData.width,h=imgData.height,threshold=255-intensity*2.55;for(let y=0;y<h;y++){const row=[];for(let x=0;x<w;x++){const i=(y*w+x)*4;row.push({r:d[i],g:d[i+1],b:d[i+2],a:d[i+3],brightness:(d[i]+d[i+1]+d[i+2])/3})}let start=0;for(let x=0;x<=w;x++){const b=x<w?row[x].brightness:255;if(b<threshold||x===w){if(x-start>1){const seg=row.slice(start,x);seg.sort((a,b)=>a.brightness-b.brightness);for(let j=0;j<seg.length;j++){const i=(y*w+(start+j))*4;d[i]=seg[j].r;d[i+1]=seg[j].g;d[i+2]=seg[j].b}}start=x+1}}}
+function datamosh(imgData,intensity){const d=imgData.data,w=imgData.width,h=imgData.height,blocks=Math.floor(intensity*0.3)+1,copy=new Uint8ClampedArray(d);for(let b=0;b<blocks;b++){const bw=Math.floor(Math.random()*60+20),bh=Math.floor(Math.random()*40+10),sx=Math.floor(Math.random()*Math.max(1,w-bw)),sy=Math.floor(Math.random()*Math.max(1,h-bh)),dx=Math.floor(Math.random()*Math.max(1,w-bw)),dy=Math.floor(Math.random()*Math.max(1,h-bh));for(let y=0;y<bh;y++)for(let x=0;x<bw;x++){const si=((sy+y)*w+(sx+x))*4,di=((dy+y)*w+(dx+x))*4;d[di]=copy[si];d[di+1]=copy[si+1];d[di+2]=copy[si+2]}}}
+function pixelSort(imgData,intensity){const d=imgData.data,w=imgData.width,h=imgData.height,threshold=255-intensity*2.55;for(let y=0;y<h;y++){const row=[];for(let x=0;x<w;x++){const i=(y*w+x)*4;row.push({r:d[i],g:d[i+1],b:d[i+2],brightness:(d[i]+d[i+1]+d[i+2])/3})}let start=0;for(let x=0;x<=w;x++){const b=x<w?row[x].brightness:255;if(b<threshold||x===w){if(x-start>1){const seg=row.slice(start,x);seg.sort((a,b)=>a.brightness-b.brightness);for(let j=0;j<seg.length;j++){const i=(y*w+(start+j))*4;d[i]=seg[j].r;d[i+1]=seg[j].g;d[i+2]=seg[j].b}}start=x+1}}}
 function addNoise(imgData,intensity){const d=imgData.data,amount=intensity*2.55;for(let i=0;i<d.length;i+=4){if(Math.random()<intensity*0.01){d[i]=Math.min(255,d[i]+(Math.random()-0.5)*amount);d[i+1]=Math.min(255,d[i+1]+(Math.random()-0.5)*amount);d[i+2]=Math.min(255,d[i+2]+(Math.random()-0.5)*amount)}}}
 
 Object.values(effects).forEach(fx=>{document.getElementById(fx.el).addEventListener('change',applyEffects);document.getElementById(fx.int).addEventListener('input',applyEffects)});
 
 document.getElementById('randomize-btn').addEventListener('click',()=>{Object.values(effects).forEach(fx=>{document.getElementById(fx.el).checked=Math.random()>0.4;document.getElementById(fx.int).value=Math.floor(Math.random()*80+10)});applyEffects()});
 document.getElementById('reset-btn').addEventListener('click',()=>{Object.values(effects).forEach(fx=>{document.getElementById(fx.el).checked=false;document.getElementById(fx.int).value=50});applyEffects()});
-document.getElementById('download-btn').addEventListener('click',()=>{const link=document.createElement('a');link.download='glitch-art.png';link.href=canvas.toDataURL('image/png');link.click()});
-document.getElementById('upload-btn').addEventListener('click',()=>uploadInput.click());
-document.getElementById('drop-upload-btn').addEventListener('click',()=>uploadInput.click());
-uploadInput.addEventListener('change',(e)=>{if(e.target.files[0])loadImage(e.target.files[0])});
-dropZone.addEventListener('dragover',(e)=>{e.preventDefault();dropZone.classList.add('dragover')});
-dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop',(e)=>{e.preventDefault();dropZone.classList.remove('dragover');if(e.dataTransfer.files[0])loadImage(e.dataTransfer.files[0])});
+document.getElementById('download-btn').addEventListener('click',()=>{if(!originalImage)return;const link=document.createElement('a');link.download='glitch-art.png';link.href=canvas.toDataURL('image/png');link.click()});
+document.getElementById('upload-btn').addEventListener('click',function(e){e.stopPropagation();uploadInput.click()});
+document.getElementById('drop-upload-btn').addEventListener('click',function(e){e.stopPropagation();uploadInput.click()});
+
+// Handle both click and touch for file input
+uploadInput.addEventListener('change',function(e){e.preventDefault();if(e.target.files&&e.target.files[0])loadImage(e.target.files[0])});
+
+// Drag and drop
+dropZone.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();dropZone.classList.add('dragover')});
+dropZone.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();dropZone.classList.remove('dragover')});
+dropZone.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();dropZone.classList.remove('dragover');if(e.dataTransfer.files&&e.dataTransfer.files[0])loadImage(e.dataTransfer.files[0])});
+
+// Also handle drop on the whole main area
+document.getElementById('main').addEventListener('dragover',function(e){e.preventDefault();dropZone.classList.add('dragover')});
+document.getElementById('main').addEventListener('dragleave',function(e){e.preventDefault();dropZone.classList.remove('dragover')});
+document.getElementById('main').addEventListener('drop',function(e){e.preventDefault();dropZone.classList.remove('dragover');if(e.dataTransfer.files&&e.dataTransfer.files[0])loadImage(e.dataTransfer.files[0])});
 </script>
 </body>
 </html>
