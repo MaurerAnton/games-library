@@ -17,10 +17,23 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: var(--bg); overflow: hidden; font-family: 'Courier New', monospace; }
 canvas { display: block; cursor: pointer; }
+#nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 36px; z-index: 100;
+  background: rgba(10,10,15,0.92); border-bottom: 1px solid #2a2a3a;
+  display: flex; align-items: center; padding: 0 16px; gap: 4px;
+  font-size: 11px; letter-spacing: 1px;
+}
+#nav a {
+  color: #666680; text-decoration: none; padding: 6px 10px;
+  border-radius: 3px; transition: all 0.2s; font-family: 'Courier New', monospace;
+}
+#nav a:hover { color: #00e5ff; background: rgba(0,229,255,0.08); }
+#nav a.active { color: #00e5ff; background: rgba(0,229,255,0.1); }
+#nav .label { color: #aa44ff; margin-right: 8px; font-weight: bold; }
 #hud {
-  position: fixed; top: 0; left: 0; right: 0;
+  position: fixed; top: 36px; left: 0; right: 0;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 24px; pointer-events: none; z-index: 10;
+  padding: 12px 24px; pointer-events: none; z-index: 10;
 }
 #const-name {
   font-size: 22px; letter-spacing: 4px; color: var(--cyan);
@@ -31,7 +44,7 @@ canvas { display: block; cursor: pointer; }
 #start-screen {
   position: fixed; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center; z-index: 20;
-  background: rgba(10,10,15,0.95);
+  background: rgba(10,10,15,0.95); padding-top: 36px;
 }
 #start-screen h1 {
   font-size: 36px; letter-spacing: 6px; margin-bottom: 8px;
@@ -64,6 +77,13 @@ canvas { display: block; cursor: pointer; }
 </style>
 </head>
 <body>
+<nav id="nav">
+  <span class="label">GAMES</span>
+  <a href="../typing/">Typing</a>
+  <a href="../constellations/" class="active">Constellations</a>
+  <a href="../tapestry/">Tapestry</a>
+  <a href="../glitch/">Glitch</a>
+</nav>
 <canvas id="c"></canvas>
 <div id="hud">
   <div id="const-name"></div>
@@ -83,7 +103,8 @@ canvas { display: block; cursor: pointer; }
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 let W, H;
-function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+const NAV_H = 36;
+function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight - NAV_H; canvas.style.marginTop = NAV_H + 'px'; }
 resize();
 addEventListener('resize', resize);
 

@@ -18,7 +18,7 @@
   --pink: #ff00aa;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; min-height: 100vh; }
+body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; min-height: 100vh; padding-top: 36px; }
 #app { display: flex; min-height: 100vh; }
 #sidebar {
   width: 280px; background: var(--bg2); border-right: 1px solid var(--border);
@@ -55,9 +55,29 @@ h1 { font-size: 14px; letter-spacing: 3px; color: var(--pink); }
 #drop-zone.hidden { display: none; }
 #canvas { max-width: 100%; max-height: 100%; }
 #upload-input { display: none; }
+#nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 36px; z-index: 100;
+  background: rgba(10,10,15,0.92); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; gap: 4px;
+  font-size: 11px; letter-spacing: 1px;
+}
+#nav a {
+  color: var(--grey); text-decoration: none; padding: 6px 10px;
+  border-radius: 3px; transition: all 0.2s; font-family: 'Courier New', monospace;
+}
+#nav a:hover { color: var(--cyan); background: rgba(0,229,255,0.08); }
+#nav a.active { color: var(--pink); background: rgba(255,0,170,0.1); }
+#nav .label { color: var(--purple); margin-right: 8px; font-weight: bold; }
 </style>
 </head>
 <body>
+<nav id="nav">
+  <span class="label">GAMES</span>
+  <a href="../typing/">Typing</a>
+  <a href="../constellations/">Constellations</a>
+  <a href="../tapestry/">Tapestry</a>
+  <a href="../glitch/" class="active">Glitch</a>
+</nav>
 <div id="app">
   <div id="sidebar">
     <h1>GLITCH ART</h1>
