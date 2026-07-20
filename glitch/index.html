@@ -33,7 +33,6 @@ h1{font-size:13px;letter-spacing:3px;color:var(--pink)}
 #drop-zone.hidden{display:none}
 #canvas{max-width:100%;max-height:100%;border:1px solid var(--border);display:none}
 #canvas.visible{display:block}
-#upload-input{display:none}
 @media(min-width:769px){
   #app{flex-direction:row;min-height:calc(100dvh - 36px)}
   #sidebar{width:280px;border-bottom:none;border-right:1px solid var(--border);max-height:none}
@@ -81,7 +80,7 @@ h1{font-size:13px;letter-spacing:3px;color:var(--pink)}
     </div>
     <button class="btn primary" id="download-btn" style="width:100%">💾 DOWNLOAD PNG</button>
     <button class="btn" id="upload-btn" style="width:100%">📁 UPLOAD IMAGE</button>
-    <input type="file" id="upload-input" accept="image/*">
+
   </div>
   <div id="main">
     <div id="drop-zone">
@@ -93,30 +92,31 @@ h1{font-size:13px;letter-spacing:3px;color:var(--pink)}
   </div>
 </div>
 <script>
-const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),dropZone=document.getElementById('drop-zone'),uploadInput=document.getElementById('upload-input');
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),dropZone=document.getElementById('drop-zone');
 let originalImage=null;
 
 const effects={rgb:{el:'fx-rgb',int:'int-rgb'},scan:{el:'fx-scan',int:'int-scan'},mosh:{el:'fx-mosh',int:'int-mosh'},sort:{el:'fx-sort',int:'int-sort'},noise:{el:'fx-noise',int:'int-noise'}};
 
 function loadImage(file){
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const img=new Image();
-    img.onload=function(){
-      originalImage=img;
-      const maxW=window.innerWidth-24,maxH=window.innerHeight-200;
-      let w=img.width,h=img.height;
-      if(w>maxW){h*=maxW/w;w=maxW}
-      if(h>maxH){w*=maxH/h;h=maxH}
-      canvas.width=Math.max(1,Math.floor(w));
-      canvas.height=Math.max(1,Math.floor(h));
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      dropZone.classList.add('hidden');
-      canvas.classList.add('visible');
-    };
-    img.src=e.target.result;
+  dropZone.innerHTML='<p style="color:var(--pink)">PROCESSING...</p>';
+  const url=URL.createObjectURL(file);
+  const img=new Image();
+  img.onload=function(){
+    originalImage=img;
+    const maxW=window.innerWidth-24,maxH=window.innerHeight-200;
+    let w=img.width,h=img.height;
+    if(w>maxW){h*=maxW/w;w=maxW}
+    if(h>maxH){w*=maxH/h;h=maxH}
+    canvas.width=Math.max(1,Math.floor(w));
+    canvas.height=Math.max(1,Math.floor(h));
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    dropZone.classList.add('hidden');
+    canvas.classList.add('visible');
+    dropZone.innerHTML='<p>DROP IMAGE HERE</p><button class="btn" id="drop-upload-btn">OR TAP TO UPLOAD</button><div class="hint">JPG, PNG, GIF, WebP</div>';
+    document.getElementById('drop-upload-btn').addEventListener('click',openFilePicker);
+    URL.revokeObjectURL(url);
   };
-  reader.readAsDataURL(file);
+  img.src=url;
 }
 
 function applyEffects(){
@@ -145,7 +145,8 @@ document.getElementById('download-btn').addEventListener('click',()=>{if(!origin
 function openFilePicker(){
   const inp=document.createElement('input');
   inp.type='file';inp.accept='image/*';
-  inp.onchange=e=>{if(e.target.files&&e.target.files[0])loadImage(e.target.files[0])};
+  inp.onchange=e=>{if(e.target.files&&e.target.files[0])loadImage(e.target.files[0]);inp.remove()};
+  document.body.appendChild(inp);
   inp.click();
 }
 document.getElementById('upload-btn').addEventListener('click',openFilePicker);
